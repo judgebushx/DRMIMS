@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="fw-bold text-dark">National Emergency Contacts Directory</h1>
+        <p class="text-muted">Instantly search and access validated disaster management focal points, responder units, and command networks across all FSM States.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 position-sticky" style="top: 20px;">
+            <div class="card-header bg-danger text-white fw-bold py-3">🚨 Directory Search Panel</div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Free Text Indexing</label>
+                        {{ filterform.search }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">State Command</label>
+                        <select name="state" class="form-select">
+                            {% for value, text in filterform.fields.state.choices %}
+                                <option value="{{ value }}" {% if value == request.GET.state %}selected{% endif %}>{{ text }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Operational Sector</label>
+                        <select name="sector" class="form-select">
+                            {% for value, text in filterform.fields.sector.choices %}
+                                <option value="{{ value }}" {% if value|stringformat:"s" == request.GET.sector %}selected{% endif %}>{{ text }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="is_24_7_operational" class="form-check-input" id="hotlineCheck" value="True" {% if request.GET.is_24_7_operational == 'True' %}checked{% endif %}>
+                        <label class="form-check-label small fw-bold text-danger" for="hotlineCheck">Show 24/7 Emergency Hotlines Only</label>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100 fw-bold py-2">Query Directory</button>
+                    <a href="{% url 'directories:directory_list' %}" class="btn btn-outline-secondary w-100 btn-sm mt-2">Clear Parameters</a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-secondary mb-0">Active Directory Matches ({{ contacts.count }})</h5>
+        </div>
+
+        <div class="row g-3">
+            {% for contact in contacts %}
+                <div class="col-md-12">
+                    <div class="card shadow-sm border-0 border-start border-4 {% if contact.is_24_7_operational %}border-danger{% else %}border-secondary{% endif %} h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-0">{{ contact.agency_name }}</h5>
+                                    <span class="badge bg-light text-dark border mt-1">{{ contact.get_state_display }}</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border mt-1">{{ contact.sector.name }}</span>
+                                    
+                                    {% if contact.is_24_7_operational %}
+                                        <span class="badge bg-danger text-uppercase mt-1 animate-pulse">⚠️ 24/7 Hotline</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if contact.focal_person %}
+                                <div class="mb-3 text-muted">
+                                    <strong>Focal Point:</strong> {{ contact.focal_person }} 
+                                    {% if contact.job_title %}<span class="text-secondary">({{ contact.job_title }})</span>{% endif %}
+                                </div>
+                            {% endif %}
+
+                            <div class="row g-2 border-top pt-3 mt-2">
+                                <div class="col-sm-6">
+                                    <small class="text-muted d-block">Primary Connection Line</small>
+                                    <a href="tel:{{ contact.primary_phone }}" class="text-decoration-none fw-bold text-primary">📞 {{ contact.primary_phone }}</a>
+                                </div>
+                                {% if contact.secondary_phone %}
+                                    <div class="col-sm-6">
+                                        <small class="text-muted d-block">Alternate / Sat-Phone Grid</small>
+                                        <a href="tel:{{ contact.secondary_phone }}" class="text-decoration-none fw-bold text-success">📡 {{ contact.secondary_phone }}</a>
+                                    </div>
+                                {% endif %}
+                                {% if contact.email %}
+                                    <div class="col-12 mt-2">
+                                        <small class="text-muted d-block">Secure Communications Routing</small>
+                                        <a href="mailto:{{ contact.email }}" class="text-decoration-none fw-bold text-dark">✉️ {{ contact.email }}</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {% if contact.notes %}
+                                <div class="mt-3 bg-light p-2 rounded border">
+                                    <small class="text-dark d-block fw-bold">Operational Routing Notes:</small>
+                                    <small class="text-secondary">{{ contact.notes }}</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="card p-5 text-center text-muted border-0 shadow-sm">
+                        <h5>No regional operational nodes found matching your query configurations.</h5>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

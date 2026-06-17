@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-10">
+        
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'portal:news_list' %}">Bulletins</a></li>
+                <li class="breadcrumb-item active aria-current='page'">Full Article</li>
+            </ol>
+        </nav>
+
+        <header class="mb-4">
+            <div class="d-flex flex-wrap gap-2 mb-2 align-items-center">
+                <span class="badge bg-primary text-uppercase px-2.5 py-1.5">{{ post.get_category_display }}</span>
+                <span class="badge bg-secondary text-uppercase px-2.5 py-1.5">{{ post.get_state_tag_display }}</span>
+                <small class="text-muted ms-auto font-monospace fw-bold">Published: {{ post.published_date|date:"F d, Y @ h:i A" }}</small>
+            </div>
+            <h1 class="fw-bold text-dark display-6 mt-2 mb-3">{{ post.title }}</h1>
+            <p class="lead text-secondary border-start border-4 border-warning ps-3 py-1 font-sans-serif italic bg-light rounded-end">{{ post.summary }}</p>
+        </header>
+        {% if post.featured_image %}
+            <div class="mb-4 overflow-hidden rounded shadow-sm border">
+                <img src="{{ post.featured_image.url }}" class="w-100 img-fluid object-fit-cover" style="max-height: 450px;" alt="Article reference snapshot">
+            </div>
+        {% endif %}
+
+        <article class="text-dark bg-white p-4 p-md-5 rounded shadow-sm border lh-xl fs-5">
+            {{ post.content|linebreaks }}
+        </article>
+
+        <div class="mt-5 pt-3 border-top d-flex flex-wrap justify-content-between gap-3 mb-5">
+            <a href="{% url 'portal:news_list' %}" class="btn btn-outline-secondary fw-bold">← Back to News Bulletin Deck</a>
+            <a href="{% url 'directories:directory_list' %}" class="btn btn-warning fw-bold">🚨 Urgent Emergency Contacts Directory</a>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .lh-xl { line-height: 1.85; }
+</style>
+{% endblock %}

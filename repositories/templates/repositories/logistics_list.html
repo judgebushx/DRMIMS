@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1 class="fw-bold text-dark">Logistics Information Repository</h1>
+        <p class="text-muted">Search, filter, and track regional supply chain warehouses, storage centers, ports, and tactical disaster responsive assets across the FSM territory.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-dark text-white fw-bold py-3">Filter Logistics Assets</div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase">Asset Name Search</label>
+                        {{ filterform.name }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase">FSM State / Jurisdiction</label>
+                        <select name="state" class="form-select">
+                            {% for value, text in filterform.fields.state.choices %}
+                                <option value="{{ value }}" {% if value == request.GET.state %}selected{% endif %}>{{ text }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase">Asset Type</label>
+                        <select name="asset_type" class="form-select">
+                            {% for value, text in filterform.fields.asset_type.choices %}
+                                <option value="{{ value }}" {% if value|stringformat:"s" == request.GET.asset_type %}selected{% endif %}>{{ text }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase">Operational Status</label>
+                        <select name="status" class="form-select">
+                            {% for value, text in filterform.fields.status.choices %}
+                                <option value="{{ value }}" {% if value == request.GET.status %}selected{% endif %}>{{ text }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Apply Active Parameters</button>
+                    <a href="{% url 'repositories:logistics_list' %}" class="btn btn-outline-secondary w-100 btn-sm mt-2">Clear Filters</a>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-bold py-3 border-bottom text-muted">Records Ledger ({{ assets.count }})</div>
+            <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                {% for asset in assets %}
+                    <div class="list-group-item p-3 list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <h6 class="mb-1 fw-bold text-primary">{{ asset.name }}</h6>
+                            <span class="badge {% if asset.status == 'OPERATIONAL' %}bg-success{% else %}bg-warning{% endif %} text-uppercase small">
+                                {{ asset.get_status_display }}
+                            </span>
+                        </div>
+                        <p class="mb-1 text-muted small"><strong>Type:</strong> {{ asset.asset_type.name }} | <strong>State:</strong> {{ asset.get_state_display }}</p>
+                        <small class="text-secondary d-block mt-1 border-top pt-1">Capacity: {{ asset.capacity_details|truncatechars:80 }}</small>
+                    </div>
+                {% empty %}
+                    <div class="p-4 text-center text-muted">No logistics assets match the configured search parameters.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-0" style="min-height: 600px; position: relative;">
+                <div id="fsm-logistics-map" style="width: 100%; height: 100%; min-height: 600px; border-radius: 0.375rem;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Core mapping viewport initialization centered roughly on FSM coordinate center point
+    var map = L.map('fsm-logistics-map').setView([6.9170, 158.1570], 5);
+
+    // 2. OpenStreetMap Layer Tile Injection
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; <br> OpenStreetMap Contributors'
+    }).addTo(map);
+
+    // 3. Inject our dynamically filtered coordinates safe text block string from view context 
+    var mapPoints = {{ map_points_json|safe }};
+    var markerBounds = [];
+
+    // 4. Iterate over mapped array profiles to drop responsive markers inside view bounding scopes
+    mapPoints.forEach(function(point) {
+        var popupContent = `
+            <div style="font-family: inherit; width: 220px;">
+                <h6 style="margin-bottom: 4px; font-weight: bold; color: #0d6efd;">${point.name}</h6>
+                <span style="font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; color: white; background-color: ${point.status === 'Fully Operational' ? '#198754' : '#ffc107'}; text-transform: uppercase;">${point.status}</span>
+                <p style="margin: 8px 0 4px 0; font-size: 12px; color: #6c757d;"><strong>Type:</strong> ${point.type}<br><strong>State:</strong> ${point.state}</p>
+                <div style="font-size: 11px; border-top: 1px solid #dee2e6; padding-top: 4px; margin-top: 4px; color: #495057;">${point.capacity}</div>
+            </div>
+        `;
+
+        var marker = L.marker([point.lat, point.lng]).addTo(map).bindPopup(popupContent);
+        markerBounds.push([point.lat, point.lng]);
+    });
+
+    // 5. Automatically snap zoom viewport configuration parameters dynamically to surround present coordinates perfectly
+    if (markerBounds.length > 0) {
+        map.fitBounds(markerBounds, { padding: [40, 40] });
+    }
+</script>
+{% endblock %}

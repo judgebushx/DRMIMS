@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 text-center text-md-start">
+        <h1 class="fw-bold text-dark">Updates & Public Bulletins</h1>
+        <p class="text-muted lead">Stay informed with direct announcements, hazard situation maps, and response notifications from state and national disaster officers.</p>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4 justify-content-start">
+    <a href="{% url 'portal:news_list' %}" class="btn btn-sm {% if not current_category %}btn-primary{% else %}btn-outline-secondary{% endif %} fw-semibold">📋 All Bulletins</a>
+    {% for cat_key, cat_name in categories %}
+        <a href="{% url 'portal:news_list' %}?category={{ cat_key }}" class="btn btn-sm {% if current_category == cat_key %}btn-primary{% else %}btn-outline-secondary{% endif %} fw-semibold">
+            {{ cat_name }}
+        </a>
+    {% endfor %}
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-9">
+        <div class="row g-4">
+            {% for post in posts %}
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm overflow-hidden d-flex flex-column custom-card-hover">
+                        {% if post.featured_image %}
+                            <img src="{{ post.featured_image.url }}" class="card-img-top object-fit-cover" style="height: 200px;" alt="Notice context illustration">
+                        {% else %}
+                            <div class="bg-secondary-subtle d-flex align-items-center justify-content-center text-muted" style="height: 200px;">
+                                <span>📢 No Banner Uploaded</span>
+                            </div>
+                        {% endif %}
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-primary-subtle text-primary border fw-bold">{{ post.get_category_display }}</span>
+                                <span class="badge bg-secondary-subtle text-secondary border small">{{ post.get_state_tag_display }}</span>
+                            </div>
+                            <h4 class="fw-bold text-dark mb-2 mt-1">{{ post.title }}</h4>
+                            <p class="text-muted small mb-3 flex-grow-1 lh-relaxed">{{ post.summary }}</p>
+                            
+                            <div class="border-top pt-3 mt-auto d-flex justify-content-between align-items-center">
+                                <small class="text-secondary font-monospace">{{ post.published_date|date:"M d, Y" }}</small>
+                                <a href="{% url 'portal:news_detail' post.slug %}" class="btn btn-link btn-sm fw-bold text-primary p-0 text-decoration-none">Read Full Article →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="card p-5 text-center text-muted border-0 shadow-sm">
+                        <h5>No emergency publications listed within this notification category.</h5>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+            <nav class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}">Previous</a></li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card border-0 shadow-sm bg-dark text-white p-4 mb-4">
+            <h5 class="fw-bold text-warning mb-2">⚠️ Emergency Rule</h5>
+            <p class="small text-light opacity-75 mb-0">During active storms or high-surf emergencies, check timestamps carefully. Always cross-check information with public broadcast radio alerts.</p>
+        </div>
+        <div class="card border-0 shadow-sm p-4 bg-white">
+            <h6 class="fw-bold text-dark mb-2">Need Direct Contacts?</h6>
+            <p class="small text-muted mb-3">If you need to reach out to specific state authorities immediately, check our public directory mapping.</p>
+            <a href="{% url 'directories:directory_list' %}" class="btn btn-outline-primary btn-sm w-100 fw-bold">Open Phone Directory</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-card-hover { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+    .custom-card-hover:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1.5rem rgba(0,0,0,0.1)!important; }
+    .lh-relaxed { line-height: 1.6; }
+</style>
+{% endblock %}

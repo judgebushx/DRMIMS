@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+            </ol>
+        </nav>
+        <h1 class="fw-bold text-dark">{{ page_title }}</h1>
+        <p class="text-muted">Access institutional documents, standard operational mandates, vulnerability charts, and strategic policy declarations framework across the FSM.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white fw-bold py-3">Search & Filter Framework</div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Keyword Indexing</label>
+                        {{ filterform.search }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">State/Jurisdiction</label>
+                        <select name="state" class="form-select">
+                            {% for value, text in filterform.fields.state.choices %}
+                                <option value="{{ value }}" {% if value == request.GET.state %}selected{% endif %}>{{ text }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Document Classification Subtype</label>
+                        <select name="sub_type" class="form-select">
+                            {% for value, text in filterform.fields.sub_type.choices %}
+                                <option value="{{ value }}" {% if value == request.GET.sub_type %}selected{% endif %}>{{ text }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Publication Year Range</label>
+                        <input type="number" name="published_year" class="form-control" value="{{ request.GET.published_year }}" placeholder="e.g. 2026">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Apply Search Parameters</button>
+                    {% if current_category == 'DM_PLAN' %}
+                        <a href="{% url 'repositories:plans_repository' %}" class="btn btn-light border btn-sm d-block text-center mt-2">Reset Canvas</a>
+                    {% elif current_category == 'RISK_PROFILE' %}
+                        <a href="{% url 'repositories:risk_repository' %}" class="btn btn-light border btn-sm d-block text-center mt-2">Reset Canvas</a>
+                    {% else %}
+                        <a href="{% url 'repositories:area_repository' %}" class="btn btn-light border btn-sm d-block text-center mt-2">Reset Canvas</a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3 text-secondary">Matching Records Ledger ({{ documents.count }})</h5>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light text-uppercase small text-secondary">
+                            <tr>
+                                <th scope="col" style="width: 50%;">Document Title</th>
+                                <th scope="col">Jurisdiction</th>
+                                <th scope="col">Type</th>
+                                <th scope="col" class="text-end">Resource</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in documents %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-dark mb-0">{{ doc.title }}</div>
+                                        <small class="text-muted d-block" style="font-size: 11px;">Published: {{ doc.published_year }} | Uploaded via DRM Dashboard</small>
+                                        {% if doc.description %}
+                                            <small class="text-secondary d-block mt-1 bg-light p-1 rounded border-start border-3" style="font-size: 11px;">{{ doc.description|truncatechars:120 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td><span class="badge bg-secondary text-uppercase">{{ doc.get_state_display }}</span></td>
+                                    <td><small class="fw-semibold text-muted">{{ doc.get_sub_type_display }}</small></td>
+                                    <td class="text-end">
+                                        <a href="{{ doc.file.url }}" target="_blank" class="btn btn-outline-danger btn-sm fw-bold">
+                                            📥 Download
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        No historical or master files matches the active filter criteria.
+                                    </td>
+                                endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if is_paginated %}
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                            {% endif %}
+                            <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                            {% if page_obj.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
