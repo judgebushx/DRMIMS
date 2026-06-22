@@ -8,14 +8,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-<body class="bg-light d-flex flex-column min-vh-100"> <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #082e68;">
+<body class="bg-light d-flex flex-column min-vh-100"> 
+    
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #082e68;">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center text-white fw-bold" href="{% url 'portal:home' %}">
                 <img src="{% static 'images/fsm_logo.png' %}" 
                     alt="FSM Logo" 
                     height="40" 
                     class="d-inline-block align-top me-2">
-                <span>FSM DRM-IMS </span>
+                <span>FSM DRM-IMS</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -23,18 +25,29 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto small">
+                    
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'portal:home' %}">
                             <i class="bi bi-house-door-fill me-1"></i> Home
                         </a>
                     </li>
-
+                    
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="#">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Early Warning System
+                        </a>
+                    </li>                    
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'portal:dashboards' %}">
+                            <i class="bi bi-bar-chart-line-fill me-1"></i> Analytics & Dashboards
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-white" href="#" id="repoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-database-fill me-1"></i> Data Repositories
                         </a>
-                        <ul class="dropdown-menu shadow" aria-labelledby="repoDropdown">
+                        <ul class="dropdown-menu shadow small" aria-labelledby="repoDropdown">
                             <li>
                                 <a class="dropdown-item fw-medium" href="{% url 'repositories:logistics_list' %}">
                                     <i class="bi bi-map-fill me-2 text-primary"></i> Logistics & Assets Map
@@ -64,18 +77,12 @@
                             <i class="bi bi-person-lines-fill me-1"></i> Contacts Directory
                         </a>
                     </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'portal:news_list' %}">
                             <i class="bi bi-megaphone-fill me-1"></i> Public Bulletins
                         </a>
                     </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-bold text-warning" href="{% url 'portal:dashboards' %}">
-                            <i class="bi bi-bar-chart-line-fill me-1"></i> Analytics & Dashboards
-                        </a>
-                    </li>
-
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{% url 'portal:faq_list' %}">
                             <i class="bi bi-question-circle-fill me-1"></i> FAQ Hub
