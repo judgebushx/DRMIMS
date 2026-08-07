@@ -217,11 +217,79 @@
 
 </section>
 
+<section class="container mb-5 ims-section">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 class="section-title mb-1">🚨 Public Bulletins & Alerts</h2>
+            <p class="text-muted mb-0">The latest official disaster risk declarations, weather summaries, and advisory notices.</p>
+        </div>
+        <a href="{% url 'portal:news_list' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold d-none d-sm-inline-block">
+            View All Bulletins <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
 
-<!-- ===================================== -->
-<!-- FEATURES SECTION -->
-<!-- ===================================== -->
+    <div class="row g-4">
+        {% for bulletin in recent_bulletins %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 shadow-sm border-0 overflow-hidden" style="border-radius: 1.25rem; background: #fff; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    
+                    <div class="position-relative bg-light" style="height: 200px; overflow: hidden;">
+                        {% if bulletin.featured_image %}
+                            <img src="{{ bulletin.featured_image.url }}" 
+                                 alt="{{ bulletin.title }}" 
+                                 class="w-100 h-100 object-fit-cover">
+                        {% else %}
+                            <img src="{% static 'images/emergency_hero.jpeg' %}" 
+                                 alt="{{ bulletin.title }}" 
+                                 class="w-100 h-100 object-fit-cover"
+                                 style="filter: brightness(0.85);">
+                        {% endif %}
+                        
+                        <span class="position-absolute top-0 start-0 m-3 badge bg-danger fw-bold shadow-sm">
+                            {{ bulletin.get_category_display }}
+                        </span>
+                    </div>
 
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-geo-alt-fill me-1"></i> {{ bulletin.get_state_tag_display }}
+                            </small>
+                        </div>
+                        
+                        <h5 class="fw-bold text-dark mb-2 line-clamp-2" style="font-size: 1.15rem; min-height: 2.7em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ bulletin.title }}
+                        </h5>
+                        
+                        <p class="text-secondary small flex-grow-1 mb-3" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 4.5em;">
+                            {{ bulletin.summary|default:bulletin.content|truncatechars:140 }}
+                        </p>
+                        
+                        <div class="border-top pt-3 mt-auto">
+                            <a href="{% url 'portal:news_detail' slug=bulletin.slug %}" class="text-decoration-none fw-bold text-danger small d-flex align-items-center stretched-link">
+                                Read Full Bulletin <i class="bi bi-chevron-right ms-1 small"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="p-5 text-center text-muted bg-white rounded-4 border shadow-sm">
+                    <i class="bi bi-shield-check text-success display-5 d-block mb-2"></i>
+                    <h5>No active emergency bulletins or alerts posted at this time.</h5>
+                    <p class="small text-secondary mb-0">System status operational. All regional indicators remain clear.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <div class="text-center mt-4 d-sm-none">
+        <a href="{% url 'portal:news_list' %}" class="btn btn-outline-danger w-100 fw-bold">
+            View All Bulletins
+        </a>
+    </div>
+</section>
 
 
 <!-- ===================================== -->

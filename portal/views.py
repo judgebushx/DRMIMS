@@ -1,15 +1,17 @@
 from django.shortcuts import render
-from .models import FAQCategory
 from django.db import models
+from django.views.generic import ListView, DetailView
+from .models import FAQCategory, BlogPost
 from repositories.models import LogisticsAsset, DocumentRepository
 from directories.models import EmergencyContact
-from django.views.generic import ListView, DetailView
-from .models import BlogPost
-
-
 
 def home(request):
     """Serves an accessible public safety and disaster awareness portal"""
+    
+    # Query the 3 most recent published news bulletins/blog posts
+    # Note: If your model uses a custom field name like 'created_at' or 'published_date', 
+    # replace '-id' with your field name (e.g., '-created_at') to sort by date.
+    recent_bulletins = BlogPost.objects.filter(is_published=True).order_by('-id')[:3]
     
     # Non-technical emergency response actions
     preparedness_steps = [
@@ -30,18 +32,15 @@ def home(request):
     context = {
         'steps': preparedness_steps,
         'early_warning_system': 'https://example-fsm-alert.gov',
+        'recent_bulletins': recent_bulletins,  # Passes data seamlessly to your home.html loop!
     }
     
     return render(request, 'portal/home.html', context)
 
 
-
-
-
-
 class FAQListView(ListView):
     model = FAQCategory
-    template_name = 'portal/faq.html'  # <-- Double check that this matches exactly!
+    template_name = 'portal/faq.html'
     context_object_name = 'categories'
 
     def get_queryset(self):
@@ -52,8 +51,6 @@ class FAQListView(ListView):
                 to_attr='published_faqs'
             )
         )
-
-
 
 
 class BlogNewsListView(ListView):
@@ -75,6 +72,7 @@ class BlogNewsListView(ListView):
         context['current_category'] = self.request.GET.get('category', '')
         context['categories'] = BlogPost.CATEGORY_CHOICES
         return context
+
 
 class BlogNewsDetailView(DetailView):
     """Renders a standalone clean layout for reading a specific public notice"""

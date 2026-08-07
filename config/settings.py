@@ -11,8 +11,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-
 import os
+from django.templatetags.static import static
+from django.urls import reverse_lazy
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,6 +34,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'unfold',                  
+    'unfold.contrib.filters',  
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -135,3 +139,48 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+
+
+UNFOLD = {
+    "SITE_TITLE": "DRIMS",
+    "SITE_HEADER": "FSM Disaster Risk Information Management System",
+    "SITE_SUBHEADER": "Portal Content Administration",
+
+    "SITE_ICON": {
+        "light": lambda request: static("img/drims-logo.svg"),
+        "dark": lambda request: static("img/drims-logo.svg"),
+    },
+    "SITE_LOGO": {
+        "light": lambda request: static("img/drims-logo.svg"),
+        "dark": lambda request: static("img/drims-logo.svg"),
+    },
+    "SITE_SYMBOL": "article",
+
+    "LOGIN": {
+        "image": lambda request: static("img/login-bg.jpg"),
+        "redirect_after": lambda request: reverse_lazy("admin:index"),
+        # No "form" key for now — portal/forms.py doesn't exist yet.
+        # Once I add the CustomLoginForm from earlier, i'll add back:
+        # "form": "portal.forms.CustomLoginForm",
+    },
+
+    "BORDER_RADIUS": "10px",
+
+    # Placeholder palette — replace with your real brand hex via
+    # https://uicolors.app/create for an exact match.
+    "COLORS": {
+        "primary": {
+            "50":  "oklch(97% .02 220)",
+            "100": "oklch(93% .04 220)",
+            "200": "oklch(86% .07 220)",
+            "300": "oklch(76% .10 220)",
+            "400": "oklch(64% .13 220)",
+            "500": "oklch(53% .15 220)",
+            "600": "oklch(44% .14 220)",
+            "700": "oklch(36% .12 222)",
+            "800": "oklch(28% .10 225)",
+            "900": "oklch(21% .08 228)",
+            "950": "oklch(15% .06 230)",
+        },
+    },
+}
