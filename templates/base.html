@@ -4,104 +4,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FSM Disaster Risk Management IMS</title>
+    <title>{% block title %}FSM Disaster Risk Management IMS{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --ims-navy: #002b5b;
+            --ims-navy-deep: #021a38;
+            --ims-ocean: #0077b6;
+            --ims-alert: #d62828;
+            --ims-ink: #14213d;
+            --ims-muted: #5f6b7a;
+            --ims-line: #e4e9f0;
+            --ims-surface: #f5f8fc;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            background: var(--ims-surface);
+            color: var(--ims-ink);
+        }
+
+        /* ---------- SKIP LINK ---------- */
+        .ims-skip {
+            position: absolute; left: 1rem; top: -60px; z-index: 3000;
+            padding: .6rem 1rem; border-radius: 8px;
+            background: #fff; color: var(--ims-navy); font-weight: 700; text-decoration: none;
+            transition: top .2s ease;
+        }
+        .ims-skip:focus { top: 1rem; }
+
+        /* ---------- NAVBAR ---------- */
+        .ims-nav {
+            background: linear-gradient(90deg, var(--ims-navy-deep) 0%, var(--ims-navy) 100%);
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            box-shadow: 0 6px 20px rgba(2,26,56,.18);
+            padding: .6rem 0;
+            z-index: 1030;
+        }
+        .ims-nav .navbar-brand {
+            display: flex; align-items: center; gap: .7rem;
+            color: #fff; font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em;
+        }
+        .ims-nav .navbar-brand img { height: 40px; width: auto; }
+        .ims-nav .navbar-brand:hover { color: #fff; }
+
+        .ims-nav .nav-link {
+            position: relative;
+            display: flex; align-items: center; gap: .45rem;
+            padding: .6rem .8rem;
+            border-radius: 10px;
+            color: rgba(255,255,255,.82);
+            font-size: .85rem; font-weight: 600;
+            transition: background .2s ease, color .2s ease;
+        }
+        .ims-nav .nav-link i { font-size: .95rem; opacity: .85; }
+        .ims-nav .nav-link:hover,
+        .ims-nav .nav-link:focus-visible,
+        .ims-nav .nav-link.show { color: #fff; background: rgba(255,255,255,.10); }
+        .ims-nav .nav-link.active { color: #fff; background: rgba(255,255,255,.16); }
+        .ims-nav .nav-link.active::after {
+            content: '';
+            position: absolute; left: .8rem; right: .8rem; bottom: 2px;
+            height: 2px; border-radius: 2px; background: #5cc4f0;
+        }
+        .ims-nav .nav-link:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+
+        .ims-nav .navbar-toggler { border: 1px solid rgba(255,255,255,.35); border-radius: 10px; padding: .4rem .6rem; }
+        .ims-nav .navbar-toggler:focus { box-shadow: 0 0 0 3px rgba(255,255,255,.3); }
+
+        .ims-nav .dropdown-menu {
+            margin-top: .6rem;
+            padding: .5rem;
+            border: 1px solid var(--ims-line);
+            border-radius: 14px;
+            box-shadow: 0 16px 36px rgba(0,43,91,.18);
+        }
+        .ims-nav .dropdown-item {
+            padding: .6rem .8rem;
+            border-radius: 9px;
+            font-size: .86rem; font-weight: 600;
+            color: var(--ims-ink);
+        }
+        .ims-nav .dropdown-item:hover,
+        .ims-nav .dropdown-item:focus { background: #eef4fb; color: var(--ims-navy); }
+        .ims-nav .dropdown-item.active { background: #e3eefa; color: var(--ims-navy); }
+        .ims-nav .dropdown-divider { margin: .4rem .3rem; border-color: var(--ims-line); }
+
+        @media (max-width: 1199px) {
+            .ims-nav .navbar-collapse {
+                margin-top: .75rem; padding: .6rem;
+                border-radius: 14px; background: rgba(255,255,255,.06);
+            }
+            .ims-nav .nav-link.active::after { display: none; }
+            .ims-nav .dropdown-menu { background: #fff; margin: .25rem 0 .4rem; box-shadow: none; }
+        }
+
+        /* ---------- FOOTER ---------- */
+        .ims-footer {
+            margin-top: auto;
+            background: var(--ims-navy-deep);
+            color: rgba(255,255,255,.75);
+            padding: 2.5rem 0 1.5rem;
+        }
+        .ims-footer .ims-foot-brand { display: flex; align-items: center; gap: .7rem; color: #fff; font-weight: 800; margin-bottom: .6rem; }
+        .ims-footer .ims-foot-brand img { height: 34px; width: auto; }
+        .ims-footer p { font-size: .88rem; line-height: 1.65; margin: 0; max-width: 46ch; }
+        .ims-footer h6 { color: #fff; font-size: .9rem; font-weight: 700; margin-bottom: .8rem; }
+        .ims-footer ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .45rem; }
+        .ims-footer a { color: rgba(255,255,255,.75); text-decoration: none; font-size: .88rem; transition: color .2s ease; }
+        .ims-footer a:hover { color: #fff; }
+        .ims-footer a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 3px; }
+        .ims-copy {
+            margin-top: 2rem; padding-top: 1.25rem;
+            border-top: 1px solid rgba(255,255,255,.12);
+            font-size: .82rem; text-align: center; color: rgba(255,255,255,.6);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ims-nav .nav-link, .ims-skip, .ims-footer a { transition: none; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-light d-flex flex-column min-vh-100"> 
-    
-    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #082e68;">
+<body class="d-flex flex-column min-vh-100">
+
+    <a class="ims-skip" href="#main-content">Skip to main content</a>
+
+    {# Used only to highlight the current page in the menu #}
+    {% with ns=request.resolver_match.namespace name=request.resolver_match.url_name %}
+    <nav class="navbar navbar-expand-xl navbar-dark sticky-top ims-nav" aria-label="Main navigation">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center text-white fw-bold" href="{% url 'portal:home' %}">
-                <img src="{% static 'images/fsm_logo.png' %}" 
-                    alt="FSM Logo" 
-                    height="40" 
-                    class="d-inline-block align-top me-2">
+            <a class="navbar-brand" href="{% url 'portal:home' %}">
+                <img src="{% static 'images/fsm_logo.png' %}" alt="FSM Logo">
                 <span>FSM DRM-IMS</span>
             </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto small">
-                    
+                <ul class="navbar-nav ms-auto gap-xl-1">
+
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'portal:home' %}">
-                            <i class="bi bi-house-door-fill me-1"></i> Home
+                        <a class="nav-link{% if ns == 'portal' and name == 'home' %} active{% endif %}" href="{% url 'portal:home' %}">
+                            <i class="bi bi-house-door-fill"></i> Home
                         </a>
                     </li>
-                    
+
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="#">
-                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Early Warning System
-                        </a>
-                    </li>                    
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'portal:dashboards' %}">
-                            <i class="bi bi-bar-chart-line-fill me-1"></i> Analytics & Dashboards
+                        <a class="nav-link" href="https://fsmdisasterwarning.info">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Weather &amp; Disaster Monitoring
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link{% if ns == 'portal' and name == 'dashboards' %} active{% endif %}" href="{% url 'portal:dashboards' %}">
+                            <i class="bi bi-bar-chart-line-fill"></i> Analytics &amp; Dashboards
+                        </a>
+                    </li>
+
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" id="repoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-database-fill me-1"></i> Data Repositories
+                        <a class="nav-link dropdown-toggle{% if ns == 'repositories' %} active{% endif %}" href="#" id="repoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-database-fill"></i> Data Repositories
                         </a>
-                        <ul class="dropdown-menu shadow small" aria-labelledby="repoDropdown">
+                        <ul class="dropdown-menu" aria-labelledby="repoDropdown">
                             <li>
-                                <a class="dropdown-item fw-medium" href="{% url 'repositories:logistics_list' %}">
-                                    <i class="bi bi-map-fill me-2 text-primary"></i> Logistics & Assets Map
+                                <a class="dropdown-item{% if name == 'logistics_list' %} active{% endif %}" href="{% url 'repositories:logistics_list' %}">
+                                    <i class="bi bi-map-fill me-2 text-primary"></i> Logistics &amp; Assets Map
                                 </a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <a class="dropdown-item" href="{% url 'repositories:plans_repository' %}">
-                                    <i class="bi bi-file-earmark-text-fill me-2 text-success"></i> DM Action Plans
+                                <a class="dropdown-item{% if name == 'plans_repository' %} active{% endif %}" href="{% url 'repositories:plans_repository' %}">
+                                    <i class="bi bi-file-earmark-text-fill me-2 text-success"></i> Strategic Documents Repository
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{% url 'repositories:risk_repository' %}">
-                                    <i class="bi bi-shield-slash-fill me-2 text-danger"></i> Climate & Risk Profiles
+                                <a class="dropdown-item{% if name == 'risk_repository' %} active{% endif %}" href="{% url 'repositories:risk_repository' %}">
+                                    <i class="bi bi-shield-slash-fill me-2 text-danger"></i> Climate &amp; Risk Profiles
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{% url 'repositories:area_repository' %}">
+                                <a class="dropdown-item{% if name == 'area_repository' %} active{% endif %}" href="{% url 'repositories:area_repository' %}">
                                     <i class="bi bi-globe-asia-australia me-2 text-info"></i> Regional Area Profiles
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item{% if name == 'assessment_tools_repository' %} active{% endif %}" href="{% url 'repositories:assessment_tools_repository' %}">
+                                    <i class="bi bi-ui-checks-grid me-2 text-primary"></i> Assessment Tools
                                 </a>
                             </li>
                         </ul>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'directories:directory_list' %}">
-                            <i class="bi bi-person-lines-fill me-1"></i> Contacts Directory
+                        <a class="nav-link{% if ns == 'directories' %} active{% endif %}" href="{% url 'directories:directory_list' %}">
+                            <i class="bi bi-person-lines-fill"></i> Contacts Directory
                         </a>
                     </li>
-                    
+
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'portal:news_list' %}">
-                            <i class="bi bi-megaphone-fill me-1"></i> Public Bulletins
+                        <a class="nav-link{% if ns == 'portal' and name == 'news_list' or name == 'news_detail' %} active{% endif %}" href="{% url 'portal:news_list' %}">
+                            <i class="bi bi-megaphone-fill"></i> Public Bulletins
                         </a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'portal:faq_list' %}">
-                            <i class="bi bi-question-circle-fill me-1"></i> FAQ Hub
+                        <a class="nav-link{% if ns == 'portal' and name == 'faq_list' %} active{% endif %}" href="{% url 'portal:faq_list' %}">
+                            <i class="bi bi-question-circle-fill"></i> FAQ Hub
                         </a>
                     </li>
+
                 </ul>
             </div>
         </div>
     </nav>
+    {% endwith %}
 
-    <div class="container my-5 flex-grow-1">
+    {# Pages that need a full-width layout (e.g. the homepage hero) override "main". #}
+    {% block main %}
+    <main id="main-content" class="container my-5 flex-grow-1">
         {% block content %}
         {% endblock %}
-    </div>
+    </main>
+    {% endblock %}
 
-    <footer class="bg-white text-center py-4 border-top mt-auto">
-        <p class="text-muted mb-0">&copy; 2026 FSM Disaster Risk Management Information Management System</p>
+    <footer class="ims-footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="ims-foot-brand">
+                        <img src="{% static 'images/fsm_logo.png' %}" alt="">
+                        <span>FSM DRM-IMS</span>
+                    </div>
+                    <p>Supporting disaster preparedness, emergency response, and recovery coordination across the Federated States of Micronesia.</p>
+                </div>
+                <div class="col-6 col-lg-3 offset-lg-1">
+                    <h6>Explore</h6>
+                    <ul>
+                        <li><a href="{% url 'portal:home' %}">Home</a></li>
+                        <li><a href="{% url 'portal:news_list' %}">Public Bulletins</a></li>
+                        <li><a href="{% url 'portal:faq_list' %}">FAQ Hub</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <h6>Resources</h6>
+                    <ul>
+                        <li><a href="{% url 'directories:directory_list' %}">Contacts</a></li>
+                        <li><a href="{% url 'repositories:plans_repository' %}">Plans</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="ims-copy">&copy; 2026 Department of Environment, Climate Change and Emergency Management</div>
+        </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

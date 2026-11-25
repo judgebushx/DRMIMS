@@ -1,118 +1,308 @@
 {% extends 'base.html' %}
 
+{% block title %}Logistics Repository | FSM DRM-IMS{% endblock %}
+
 {% block content %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1 class="fw-bold text-dark">Logistics Information Repository</h1>
-        <p class="text-muted">Search, filter, and track regional supply chain warehouses, storage centers, ports, and tactical disaster responsive assets across the FSM territory.</p>
-    </div>
-</div>
+<style>
+    /* ==========================
+       DRMIMS Logistics Repository
+       (colors and font come from base.html)
+       ========================== */
+    .ims-page-head {
+        position: relative;
+        padding: 2.75rem 2.25rem;
+        margin-bottom: 2rem;
+        border-radius: 18px;
+        color: #fff;
+        background: linear-gradient(110deg, var(--ims-navy-deep) 0%, var(--ims-navy) 60%, #0a5a93 100%);
+        overflow: hidden;
+    }
+    .ims-page-head::after {
+        content: '';
+        position: absolute;
+        right: -60px; top: -60px;
+        width: 260px; height: 260px;
+        border-radius: 50%;
+        border: 40px solid rgba(255,255,255,.05);
+        pointer-events: none;
+    }
+    .ims-page-head h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 .6rem; }
+    .ims-page-head p { margin: 0; max-width: 66ch; line-height: 1.7; color: rgba(255,255,255,.85); }
+
+    /* ---------- PANELS ---------- */
+    .ims-panel {
+        background: #fff;
+        border: 1px solid var(--ims-line);
+        border-radius: 18px;
+        box-shadow: 0 10px 28px rgba(0,43,91,.06);
+    }
+    .ims-filter { padding: 1.6rem; margin-bottom: 1.5rem; }
+    .ims-panel h2 { display: flex; align-items: center; gap: .6rem; font-size: 1.05rem; font-weight: 800; margin: 0 0 1.25rem; }
+    .ims-panel h2 i { color: var(--ims-ocean); }
+    .ims-label { display: block; margin-bottom: .4rem; font-size: .8rem; font-weight: 700; color: var(--ims-muted); }
+    .ims-field { margin-bottom: 1.1rem; }
+
+    .ims-filter input,
+    .ims-filter select {
+        width: 100%;
+        padding: .7rem .95rem;
+        border: 1.5px solid var(--ims-line);
+        border-radius: 12px;
+        background-color: var(--ims-surface);
+        font-size: .92rem;
+        color: var(--ims-ink);
+        transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+    }
+    .ims-filter input:focus,
+    .ims-filter select:focus {
+        outline: none;
+        border-color: var(--ims-ocean);
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(0,119,182,.18);
+    }
+
+    .ims-btn {
+        display: flex; align-items: center; justify-content: center; gap: .5rem;
+        width: 100%;
+        padding: .8rem 1rem;
+        border: 0;
+        border-radius: 999px;
+        background: var(--ims-navy);
+        color: #fff;
+        font-size: .92rem; font-weight: 700;
+        cursor: pointer;
+        transition: background .2s ease;
+    }
+    .ims-btn:hover { background: var(--ims-ocean); }
+    .ims-btn:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 3px; }
+    .ims-clear { display: block; margin-top: .75rem; text-align: center; font-size: .85rem; font-weight: 600; color: var(--ims-muted); text-decoration: none; }
+    .ims-clear:hover { color: var(--ims-ocean); }
+
+    /* ---------- LEDGER ---------- */
+    .ims-ledger-head { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--ims-line); }
+    .ims-ledger-head h2 { margin: 0; }
+    .ims-count { padding: .25rem .75rem; border-radius: 999px; background: #e5f0fc; color: #0b64c0; font-size: .8rem; font-weight: 700; }
+    .ims-ledger { max-height: 420px; overflow-y: auto; }
+    .ims-asset { padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--ims-line); transition: background .2s ease; }
+    .ims-asset:last-child { border-bottom: 0; }
+    .ims-asset:hover { background: var(--ims-surface); }
+    .ims-asset-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; margin-bottom: .35rem; }
+    .ims-asset h3 { font-size: .98rem; font-weight: 700; color: var(--ims-navy); margin: 0; line-height: 1.35; }
+    .ims-status { flex-shrink: 0; padding: .22rem .65rem; border-radius: 999px; font-size: .72rem; font-weight: 700; }
+    .ims-status.ok { background: #e4f6ec; color: #167a4a; }
+    .ims-status.warn { background: #fff1d6; color: #a15f00; }
+    .ims-asset-meta { font-size: .84rem; color: var(--ims-muted); margin: 0 0 .5rem; line-height: 1.5; }
+    .ims-asset-meta strong { color: var(--ims-ink); }
+    .ims-asset-cap { font-size: .8rem; color: var(--ims-muted); padding-top: .5rem; border-top: 1px dashed var(--ims-line); }
+    .ims-empty { padding: 2.5rem 1.5rem; text-align: center; color: var(--ims-muted); font-size: .9rem; }
+
+    /* ---------- MAP ---------- */
+    .ims-map-wrap { position: relative; overflow: hidden; height: 100%; min-height: 640px; }
+    #fsm-logistics-map { position: absolute; inset: 0; z-index: 1; }
+
+    .lg-pin {
+        width: 38px; height: 38px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,.35);
+        font-size: 17px;
+        transition: transform .2s ease;
+    }
+    .lg-pin:hover { transform: scale(1.12); }
+    .lg-pin.ok { background: #168a55; }
+    .lg-pin.warn { background: #f59e0b; }
+
+    .lg-legend {
+        padding: .65rem .9rem;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,.15);
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-size: .78rem; font-weight: 600; color: #26344d;
+        line-height: 1.9;
+    }
+    .lg-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: .5rem; vertical-align: middle; }
+
+    .logistics-popup .leaflet-popup-content-wrapper { padding: 0; overflow: hidden; border-radius: 16px; box-shadow: 0 12px 32px rgba(0,43,91,.22); }
+    .logistics-popup .leaflet-popup-content { margin: 0; width: auto !important; }
+    .logistics-popup .leaflet-popup-tip { box-shadow: none; }
+    .lp-card { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; min-width: 230px; }
+    .lp-head { padding: 14px 40px 12px 16px; color: #fff; background: linear-gradient(135deg, #002b5b, #0077b6); }
+    .lp-head h6 { margin: 0 0 8px; font-size: 15px; font-weight: 700; line-height: 1.3; }
+    .lp-status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #fff; }
+    .lp-body { padding: 12px 16px 14px; font-size: 12.5px; line-height: 1.6; color: #44556a; }
+    .lp-body strong { color: #14213d; }
+    .lp-cap { margin-top: 8px; padding-top: 8px; border-top: 1px solid #e4e9f0; font-size: 12px; color: #5f6b7a; }
+    .logistics-popup .leaflet-popup-close-button { top: 10px; right: 10px; width: 24px; height: 24px; padding: 0; border-radius: 50%; background: rgba(255,255,255,.18); color: #fff; font: 17px/23px sans-serif; text-align: center; }
+    .logistics-popup .leaflet-popup-close-button:hover { background: rgba(255,255,255,.32); color: #fff; }
+
+    @media (max-width: 991px) { .ims-map-wrap { min-height: 460px; } }
+    @media (max-width: 575px) {
+        .ims-page-head { padding: 1.75rem 1.25rem; }
+        .ims-filter { padding: 1.25rem; }
+        .ims-ledger-head, .ims-asset { padding-left: 1.1rem; padding-right: 1.1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .ims-btn, .ims-asset, .lg-pin { transition: none; }
+    }
+</style>
+
+<header class="ims-page-head">
+    <h1>Logistics Information Repository</h1>
+    <p>Search, filter, and track regional supply chain warehouses, storage centers, ports, and tactical disaster responsive assets across the FSM territory.</p>
+</header>
 
 <div class="row g-4">
+
+    <!-- ===== FILTERS + LEDGER ===== -->
     <div class="col-lg-4">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-dark text-white fw-bold py-3">Filter Logistics Assets</div>
-            <div class="card-body">
-                <form method="get">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase">Asset Name Search</label>
-                        {{ filterform.name }}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase">FSM State / Jurisdiction</label>
-                        <select name="state" class="form-select">
-                            {% for value, text in filterform.fields.state.choices %}
-                                <option value="{{ value }}" {% if value == request.GET.state %}selected{% endif %}>{{ text }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase">Asset Type</label>
-                        <select name="asset_type" class="form-select">
-                            {% for value, text in filterform.fields.asset_type.choices %}
-                                <option value="{{ value }}" {% if value|stringformat:"s" == request.GET.asset_type %}selected{% endif %}>{{ text }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase">Operational Status</label>
-                        <select name="status" class="form-select">
-                            {% for value, text in filterform.fields.status.choices %}
-                                <option value="{{ value }}" {% if value == request.GET.status %}selected{% endif %}>{{ text }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-bold">Apply Active Parameters</button>
-                    <a href="{% url 'repositories:logistics_list' %}" class="btn btn-outline-secondary w-100 btn-sm mt-2">Clear Filters</a>
-                </form>
-            </div>
+
+        <div class="ims-panel ims-filter">
+            <h2><i class="bi bi-funnel-fill"></i> Filter assets</h2>
+            <form method="get">
+                <div class="ims-field">
+                    <label class="ims-label">Asset name</label>
+                    {{ filterform.name }}
+                </div>
+
+                <div class="ims-field">
+                    <label class="ims-label" for="lgState">State / jurisdiction</label>
+                    <select name="state" id="lgState" class="form-select">
+                        {% for value, text in filterform.fields.state.choices %}
+                            <option value="{{ value }}" {% if value == request.GET.state %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="ims-field">
+                    <label class="ims-label" for="lgType">Asset type</label>
+                    <select name="asset_type" id="lgType" class="form-select">
+                        {% for value, text in filterform.fields.asset_type.choices %}
+                            <option value="{{ value }}" {% if value|stringformat:"s" == request.GET.asset_type %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="ims-field">
+                    <label class="ims-label" for="lgStatus">Operational status</label>
+                    <select name="status" id="lgStatus" class="form-select">
+                        {% for value, text in filterform.fields.status.choices %}
+                            <option value="{{ value }}" {% if value == request.GET.status %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="ims-btn"><i class="bi bi-check2-circle"></i> Apply filters</button>
+                <a href="{% url 'repositories:logistics_list' %}" class="ims-clear">Clear filters</a>
+            </form>
         </div>
 
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white fw-bold py-3 border-bottom text-muted">Records Ledger ({{ assets.count }})</div>
-            <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+        <div class="ims-panel">
+            <div class="ims-ledger-head">
+                <h2><i class="bi bi-list-ul"></i> Records ledger</h2>
+                <span class="ims-count">{{ assets.count }}</span>
+            </div>
+            <div class="ims-ledger">
                 {% for asset in assets %}
-                    <div class="list-group-item p-3 list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between align-items-start">
-                            <h6 class="mb-1 fw-bold text-primary">{{ asset.name }}</h6>
-                            <span class="badge {% if asset.status == 'OPERATIONAL' %}bg-success{% else %}bg-warning{% endif %} text-uppercase small">
-                                {{ asset.get_status_display }}
-                            </span>
+                    <div class="ims-asset">
+                        <div class="ims-asset-top">
+                            <h3>{{ asset.name }}</h3>
+                            <span class="ims-status {% if asset.status == 'OPERATIONAL' %}ok{% else %}warn{% endif %}">{{ asset.get_status_display }}</span>
                         </div>
-                        <p class="mb-1 text-muted small"><strong>Type:</strong> {{ asset.asset_type.name }} | <strong>State:</strong> {{ asset.get_state_display }}</p>
-                        <small class="text-secondary d-block mt-1 border-top pt-1">Capacity: {{ asset.capacity_details|truncatechars:80 }}</small>
+                        <p class="ims-asset-meta"><strong>Type:</strong> {{ asset.asset_type.name }} &nbsp;·&nbsp; <strong>State:</strong> {{ asset.get_state_display }}</p>
+                        <div class="ims-asset-cap">Capacity: {{ asset.capacity_details|truncatechars:80 }}</div>
                     </div>
                 {% empty %}
-                    <div class="p-4 text-center text-muted">No logistics assets match the configured search parameters.</div>
+                    <div class="ims-empty">No logistics assets match your filters.</div>
                 {% endfor %}
             </div>
         </div>
+
     </div>
 
+    <!-- ===== MAP ===== -->
     <div class="col-lg-8">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body p-0" style="min-height: 600px; position: relative;">
-                <div id="fsm-logistics-map" style="width: 100%; height: 100%; min-height: 600px; border-radius: 0.375rem;"></div>
-            </div>
+        <div class="ims-panel ims-map-wrap">
+            <div id="fsm-logistics-map" role="application" aria-label="Map of logistics assets"></div>
         </div>
     </div>
+
 </div>
 
 <script>
-    // 1. Core mapping viewport initialization centered roughly on FSM coordinate center point
-    var map = L.map('fsm-logistics-map').setView([6.9170, 158.1570], 5);
+    // Escape values coming from the database before putting them into popup HTML
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
 
-    // 2. OpenStreetMap Layer Tile Injection
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '&copy; <br> OpenStreetMap Contributors'
+    // 1. Map centered roughly on the FSM
+    var map = L.map('fsm-logistics-map', { zoomControl: false }).setView([6.9170, 158.1570], 5);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // 2. Tiles.
+    //    The old OpenStreetMap tile URL returned "403 Access blocked" because OSM requires a Referer
+    //    header, and Django's default Referrer-Policy ("same-origin") strips it on cross-site requests.
+    //    CARTO tiles (same source and API key as the hazard map) have no Referer requirement, and
+    //    referrerPolicy makes sure the browser still sends the site origin.
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=cb1_28wt_1_ad42b48b7f31aa6d3cce2928', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: ['a', 'b', 'c', 'd'],
+        maxZoom: 19,
+        referrerPolicy: 'origin'
     }).addTo(map);
 
-    // 3. Inject our dynamically filtered coordinates safe text block string from view context 
+    // 3. Filtered coordinates from the view
     var mapPoints = {{ map_points_json|safe }};
     var markerBounds = [];
 
-    // 4. Iterate over mapped array profiles to drop responsive markers inside view bounding scopes
-    mapPoints.forEach(function(point) {
-        var popupContent = `
-            <div style="font-family: inherit; width: 220px;">
-                <h6 style="margin-bottom: 4px; font-weight: bold; color: #0d6efd;">${point.name}</h6>
-                <span style="font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; color: white; background-color: ${point.status === 'Fully Operational' ? '#198754' : '#ffc107'}; text-transform: uppercase;">${point.status}</span>
-                <p style="margin: 8px 0 4px 0; font-size: 12px; color: #6c757d;"><strong>Type:</strong> ${point.type}<br><strong>State:</strong> ${point.state}</p>
-                <div style="font-size: 11px; border-top: 1px solid #dee2e6; padding-top: 4px; margin-top: 4px; color: #495057;">${point.capacity}</div>
-            </div>
-        `;
+    function pinIcon(ok) {
+        return L.divIcon({
+            className: '',
+            html: '<div class="lg-pin ' + (ok ? 'ok' : 'warn') + '">📦</div>',
+            iconSize: [38, 38],
+            iconAnchor: [19, 19],
+            popupAnchor: [0, -16]
+        });
+    }
 
-        var marker = L.marker([point.lat, point.lng]).addTo(map).bindPopup(popupContent);
+    // 4. Drop a marker for every asset
+    mapPoints.forEach(function (point) {
+        var ok = point.status === 'Fully Operational';
+        var popupContent =
+            '<div class="lp-card">' +
+              '<div class="lp-head"><h6>' + esc(point.name) + '</h6>' +
+                '<span class="lp-status" style="background:' + (ok ? '#168a55' : '#d98a00') + '">' + esc(point.status) + '</span></div>' +
+              '<div class="lp-body">' +
+                '<strong>Type:</strong> ' + esc(point.type) + '<br>' +
+                '<strong>State:</strong> ' + esc(point.state) +
+                '<div class="lp-cap">' + esc(point.capacity) + '</div>' +
+              '</div>' +
+            '</div>';
+
+        L.marker([point.lat, point.lng], { icon: pinIcon(ok) })
+            .addTo(map)
+            .bindPopup(popupContent, { className: 'logistics-popup', minWidth: 230, maxWidth: 300 });
         markerBounds.push([point.lat, point.lng]);
     });
 
-    // 5. Automatically snap zoom viewport configuration parameters dynamically to surround present coordinates perfectly
+    // 5. Zoom to fit the markers
     if (markerBounds.length > 0) {
-        map.fitBounds(markerBounds, { padding: [40, 40] });
+        map.fitBounds(markerBounds, { padding: [40, 40], maxZoom: 10 });
     }
+
+    // 6. Legend
+    var legend = L.control({ position: 'topright' });
+    legend.onAdd = function () {
+        var div = L.DomUtil.create('div', 'lg-legend');
+        div.innerHTML = '<i style="background:#168a55"></i>Fully operational<br><i style="background:#f59e0b"></i>Limited / other';
+        return div;
+    };
+    legend.addTo(map);
 </script>
 {% endblock %}

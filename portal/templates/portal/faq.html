@@ -1,52 +1,188 @@
 {% extends 'base.html' %}
 
+{% block title %}FAQ Hub | FSM DRM-IMS{% endblock %}
+
 {% block content %}
-<div class="row mb-5">
-    <div class="col-12 text-center">
-        <h1 class="fw-bold text-dark mb-2">Disaster Resilience Knowledge Base</h1>
-        <p class="text-muted lead mx-auto" style="max-width: 700px;">
-            Find instant answers regarding response operations, early warning networks, policy compliance, and resource distribution protocols across the Federated States of Micronesia.
-        </p>
-    </div>
-</div>
+
+<style>
+    /* ==========================
+       DRMIMS Knowledge Base / FAQ
+       (colors and font come from base.html)
+       ========================== */
+    .ims-page-head {
+        position: relative;
+        padding: 2.75rem 2.25rem;
+        margin-bottom: 1.75rem;
+        border-radius: 18px;
+        color: #fff;
+        background: linear-gradient(110deg, var(--ims-navy-deep) 0%, var(--ims-navy) 60%, #0a5a93 100%);
+        overflow: hidden;
+    }
+    .ims-page-head::after {
+        content: '';
+        position: absolute;
+        right: -60px; top: -60px;
+        width: 260px; height: 260px;
+        border-radius: 50%;
+        border: 40px solid rgba(255,255,255,.05);
+        pointer-events: none;
+    }
+    .ims-page-head h1 {
+        font-size: clamp(1.7rem, 4vw, 2.5rem);
+        font-weight: 800;
+        letter-spacing: -.02em;
+        margin: 0 0 .6rem;
+    }
+    .ims-page-head p { margin: 0; max-width: 66ch; line-height: 1.7; color: rgba(255,255,255,.85); }
+
+    /* ---------- CATEGORY JUMP LINKS ---------- */
+    .ims-jump {
+        display: flex; gap: .5rem;
+        margin-bottom: 2.25rem;
+        overflow-x: auto;
+        padding-bottom: .35rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    .ims-pill {
+        flex-shrink: 0;
+        padding: .5rem 1.05rem;
+        border-radius: 999px;
+        border: 1.5px solid var(--ims-line);
+        background: #fff;
+        color: var(--ims-muted);
+        font-size: .86rem; font-weight: 600;
+        text-decoration: none; white-space: nowrap;
+        transition: border-color .2s ease, color .2s ease;
+    }
+    .ims-pill:hover { border-color: var(--ims-ocean); color: var(--ims-ocean); }
+    .ims-pill:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 2px; }
+
+    /* ---------- CATEGORY SECTION ---------- */
+    .ims-faq-cat { margin-bottom: 2.75rem; scroll-margin-top: 90px; }
+    .ims-faq-cat-head { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .ims-faq-cat-head h2 { font-size: 1.3rem; font-weight: 800; letter-spacing: -.01em; margin: 0; color: var(--ims-ink); }
+    .ims-count {
+        padding: .25rem .7rem;
+        border-radius: 999px;
+        background: #e5f0fc; color: #0b64c0;
+        font-size: .76rem; font-weight: 700;
+    }
+
+    /* ---------- ACCORDION ---------- */
+    .ims-faq .accordion {
+        --bs-accordion-btn-focus-box-shadow: 0 0 0 3px rgba(0,119,182,.25);
+        --bs-accordion-active-bg: #eef4fb;
+        --bs-accordion-active-color: var(--ims-navy);
+        display: flex; flex-direction: column; gap: .7rem;
+    }
+    .ims-faq .accordion-item {
+        border: 1px solid var(--ims-line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .ims-faq .accordion-item:has(.accordion-button:not(.collapsed)) {
+        border-color: #bcd3ea;
+        box-shadow: 0 10px 26px rgba(0,43,91,.08);
+    }
+    .ims-faq .accordion-button {
+        padding: 1.1rem 1.35rem;
+        font-size: .98rem; font-weight: 700; line-height: 1.45;
+        color: var(--ims-ink);
+        background: #fff;
+        border-radius: 0 !important;
+    }
+    .ims-faq .accordion-button:not(.collapsed) { background: #eef4fb; color: var(--ims-navy); box-shadow: none; }
+    .ims-faq .accordion-body {
+        padding: 1.2rem 1.35rem 1.4rem;
+        font-size: .94rem; line-height: 1.8;
+        color: var(--ims-muted);
+        border-top: 1px solid var(--ims-line);
+    }
+    .ims-faq .accordion-body p { max-width: 75ch; }
+    .ims-faq .accordion-body p:last-child { margin-bottom: 0; }
+
+    .ims-empty {
+        text-align: center;
+        padding: 3.5rem 1.5rem;
+        border: 1.5px dashed var(--ims-line);
+        border-radius: 18px;
+        background: #fff;
+    }
+    .ims-empty i { font-size: 2.2rem; color: var(--ims-muted); display: block; margin-bottom: .6rem; }
+    .ims-empty h5 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+
+    @media (max-width: 575px) {
+        .ims-page-head { padding: 1.75rem 1.25rem; }
+        .ims-faq .accordion-button { padding: 1rem; font-size: .93rem; }
+        .ims-faq .accordion-body { padding: 1rem 1rem 1.2rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .ims-faq .accordion-item, .ims-pill { transition: none; }
+    }
+</style>
+
+<header class="ims-page-head">
+    <h1>Disaster Resilience Knowledge Base</h1>
+    <p>
+        Find instant answers regarding response operations, early warning networks, policy compliance, and resource distribution protocols across the Federated States of Micronesia.
+    </p>
+</header>
 
 <div class="row justify-content-center">
-    <div class="col-xl-9">
+    <div class="col-xl-10 ims-faq">
+
+        {% if categories %}
+            <nav class="ims-jump" aria-label="Jump to a category">
+                {% for category in categories %}
+                    {% if category.published_faqs %}
+                        <a href="#cat-{{ category.id }}" class="ims-pill">{{ category.title }}</a>
+                    {% endif %}
+                {% endfor %}
+            </nav>
+        {% endif %}
+
         {% for category in categories %}
             {% if category.published_faqs %}
-                <div class="mb-5">
-                    <!-- Category Header Banner -->
-                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                        <h4 class="fw-bold text-primary mb-0">{{ category.title }}</h4>
-                        <span class="badge bg-secondary-subtle text-secondary border ms-2 small">
-                            {{ category.published_faqs|length }} entries
-                        </span>
+                <section class="ims-faq-cat" id="cat-{{ category.id }}">
+
+                    <div class="ims-faq-cat-head">
+                        <h2>{{ category.title }}</h2>
+                        <span class="ims-count">{{ category.published_faqs|length }} entries</span>
                     </div>
 
-                    <!-- Accordion Element Container -->
-                    <div class="accordion shadow-sm rounded overflow-hidden" id="accordion-cat-{{ category.id }}">
+                    <div class="accordion" id="accordion-cat-{{ category.id }}">
                         {% for faq in category.published_faqs %}
-                            <div class="accordion-item border-0 border-bottom">
-                                <h2 class="accordion-header" id="heading-faq-{{ faq.id }}">
-                                    <button class="accordion-button collapsed fw-bold py-3 text-dark bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-faq-{{ faq.id }}" aria-expanded="false" aria-controls="collapse-faq-{{ faq.id }}">
-                                        ❓ {{ faq.question }}
+                            <div class="accordion-item">
+                                <h3 class="accordion-header" id="heading-faq-{{ faq.id }}">
+                                    <button class="accordion-button collapsed" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#collapse-faq-{{ faq.id }}"
+                                            aria-expanded="false" aria-controls="collapse-faq-{{ faq.id }}">
+                                        {{ faq.question }}
                                     </button>
-                                </h2>
-                                <div id="collapse-faq-{{ faq.id }}" class="accordion-collapse collapse" aria-labelledby="heading-faq-{{ faq.id }}" data-bs-parent="#accordion-cat-{{ category.id }}">
-                                    <div class="accordion-body bg-light-subtle text-secondary lh-lg p-4 border-top">
+                                </h3>
+                                <div id="collapse-faq-{{ faq.id }}" class="accordion-collapse collapse"
+                                     aria-labelledby="heading-faq-{{ faq.id }}" data-bs-parent="#accordion-cat-{{ category.id }}">
+                                    <div class="accordion-body">
                                         {{ faq.answer|linebreaks }}
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
-                </div>
+
+                </section>
             {% endif %}
         {% empty %}
-            <div class="card p-5 text-center text-muted border-0 shadow-sm">
+            <div class="ims-empty">
+                <i class="bi bi-tools"></i>
                 <h5>The Knowledge Base repository is undergoing system updates. Please check back shortly.</h5>
             </div>
         {% endfor %}
+
     </div>
 </div>
+
 {% endblock %}

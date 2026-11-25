@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from django.templatetags.static import static
 from django.urls import reverse_lazy
+import whitenoise
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -26,11 +27,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@#nl5vg)%4z$jcwe-n#t6p(b!$sjol##gn2^&=9p%o4o@#r_m!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+# settings.py
 
+ALLOWED_HOSTS = [
+    "fsmdisastermanagement.info",
+    "www.fsmdisastermanagement.info",
+    "127.0.0.1",
+    "localhost",
+]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://fsmdisastermanagement.info",
+    "https://www.fsmdisastermanagement.info",
+]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Application definition
 
 INSTALLED_APPS = [
@@ -53,6 +66,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,9 +105,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'drims',
         'USER': 'postgres',
-        'PASSWORD': 'openup12',
+        'PASSWORD': 'Kaselehlie2026#',
         'HOST': 'localhost',
-        'PORT': '5433',
+        'PORT': '5432',
     }
 }
 
@@ -132,8 +147,12 @@ USE_TZ = True
 
 
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Media files configuration (for uploaded PDF files and assessment reports)
 MEDIA_URL = '/media/'
@@ -146,28 +165,14 @@ UNFOLD = {
     "SITE_HEADER": "FSM Disaster Risk Information Management System",
     "SITE_SUBHEADER": "Portal Content Administration",
 
-    "SITE_ICON": {
-        "light": lambda request: static("img/drims-logo.svg"),
-        "dark": lambda request: static("img/drims-logo.svg"),
-    },
-    "SITE_LOGO": {
-        "light": lambda request: static("img/drims-logo.svg"),
-        "dark": lambda request: static("img/drims-logo.svg"),
-    },
     "SITE_SYMBOL": "article",
 
     "LOGIN": {
-        "image": lambda request: static("img/login-bg.jpg"),
         "redirect_after": lambda request: reverse_lazy("admin:index"),
-        # No "form" key for now — portal/forms.py doesn't exist yet.
-        # Once I add the CustomLoginForm from earlier, i'll add back:
-        # "form": "portal.forms.CustomLoginForm",
     },
 
     "BORDER_RADIUS": "10px",
 
-    # Placeholder palette — replace with your real brand hex via
-    # https://uicolors.app/create for an exact match.
     "COLORS": {
         "primary": {
             "50":  "oklch(97% .02 220)",
@@ -182,5 +187,14 @@ UNFOLD = {
             "900": "oklch(21% .08 228)",
             "950": "oklch(15% .06 230)",
         },
+    },
+}
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }

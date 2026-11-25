@@ -1,417 +1,501 @@
-
 {% extends 'base.html' %}
 {% load static %}
 
-{% block content %}
+{% block main %}
+<main id="main-content" class="flex-grow-1">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
     /* ==========================
-       Modern IMS Homepage Styles
+       DRMIMS Homepage
        ========================== */
-
-    .feature-card {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border-radius: 1.25rem;
-        padding: 2rem;
-        height: 100%;
-        border: 1px solid rgba(0,0,0,.05);
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.05);
-        transition: all .3s ease;
+    :root {
+        --ims-navy: #002b5b;
+        --ims-navy-deep: #021a38;
+        --ims-ocean: #0077b6;
+        --ims-alert: #d62828;
+        --ims-ink: #14213d;
+        --ims-muted: #5f6b7a;
+        --ims-line: #e4e9f0;
+        --ims-surface: #f5f8fc;
+        --ims-radius: 18px;
     }
 
-    .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 1rem 2rem rgba(0,0,0,.08);
+    .ims-page {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        color: var(--ims-ink);
+        background: var(--ims-surface);
     }
 
-    .icon-circle {
-        width: 65px;
-        height: 65px;
-        border-radius: 50%;
+    /* ---------- HERO ---------- */
+    .ims-hero {
+        position: relative;
+        min-height: 620px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
+        background-image: var(--hero-img);
+        background-size: cover;
+        background-position: center;
+        color: #fff;
+        isolation: isolate;
+    }
+    .ims-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+            linear-gradient(100deg, rgba(2,26,56,.92) 0%, rgba(0,43,91,.78) 42%, rgba(0,43,91,.25) 100%);
+    }
+    .ims-hero-inner { padding: 5rem 0 7rem; }
+
+    .ims-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .6rem;
+        padding: .5rem 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.28);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        font-size: .85rem;
+        font-weight: 600;
+        line-height: 1.4;
+        max-width: 100%;
+    }
+    .ims-badge::before {
+        content: '';
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #4ade80;
+        box-shadow: 0 0 0 4px rgba(74,222,128,.25);
         flex-shrink: 0;
     }
 
-    .service-card {
-        border: none;
-        border-radius: 1.25rem;
-        overflow: hidden;
-        transition: all .35s ease;
-        background: #fff;
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.06);
-        height: 100%;
+    .ims-hero h1 {
+        font-size: clamp(2.1rem, 5vw, 3.7rem);
+        font-weight: 800;
+        line-height: 1.12;
+        letter-spacing: -.02em;
+        max-width: 15ch;
+        margin-bottom: 1.25rem;
+    }
+    .ims-hero .ims-lead {
+        font-size: 1.12rem;
+        line-height: 1.7;
+        color: rgba(255,255,255,.88);
+        max-width: 56ch;
+        margin-bottom: 2.25rem;
     }
 
-    .service-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 1.25rem 2rem rgba(0,0,0,.10);
-    }
-
-    .service-icon {
-        width: 85px;
-        height: 85px;
-        border-radius: 50%;
-        display: flex;
+    .ims-btn {
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin: auto;
-        font-size: 2rem;
-    }
-
-    .service-title {
+        gap: .55rem;
+        padding: .85rem 1.6rem;
+        border-radius: 999px;
         font-weight: 700;
-        color: #1e293b;
-        margin-top: 1.25rem;
-        margin-bottom: 1rem;
+        font-size: .95rem;
+        text-decoration: none;
+        transition: background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
     }
+    .ims-btn:hover { transform: translateY(-2px); }
+    .ims-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+    .ims-btn-light { background: #fff; color: var(--ims-navy); }
+    .ims-btn-light:hover { background: #e8f1fa; color: var(--ims-navy); }
+    .ims-btn-ghost { color: #fff; border: 1.5px solid rgba(255,255,255,.55); }
+    .ims-btn-ghost:hover { background: rgba(255,255,255,.14); border-color: #fff; color: #fff; }
 
-    .service-text {
-        color: #64748b;
-        line-height: 1.7;
-        min-height: 110px;
-    }
-
-    .section-title {
+    /* ---------- SECTION HEADINGS ---------- */
+    .ims-section { padding: 0 0 4.5rem; }
+    .ims-heading {
+        font-size: clamp(1.5rem, 3vw, 2rem);
         font-weight: 800;
-        color: #0f172a;
+        letter-spacing: -.015em;
+        color: var(--ims-ink);
+        margin: 0 0 .35rem;
+    }
+    .ims-sub { color: var(--ims-muted); margin: 0; max-width: 62ch; line-height: 1.65; }
+
+    .ims-link-all {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        font-weight: 700;
+        font-size: .9rem;
+        color: var(--ims-navy);
+        text-decoration: none;
+        padding: .55rem 1.1rem;
+        border: 1.5px solid var(--ims-line);
+        border-radius: 999px;
+        background: #fff;
+        transition: border-color .2s ease, color .2s ease;
+        white-space: nowrap;
+    }
+    .ims-link-all:hover { border-color: var(--ims-ocean); color: var(--ims-ocean); }
+
+    /* ---------- BULLETINS (overlaps the hero) ---------- */
+    .ims-bulletins { margin-top: -4.5rem; position: relative; z-index: 3; }
+    .ims-bulletins-head {
+        background: #fff;
+        border-radius: var(--ims-radius) var(--ims-radius) 0 0;
+        padding: 1.75rem 1.75rem 1.25rem;
+        border: 1px solid var(--ims-line);
+        border-bottom: 0;
+    }
+    .ims-bulletins-body {
+        background: #fff;
+        border-radius: 0 0 var(--ims-radius) var(--ims-radius);
+        padding: 0 1.75rem 1.75rem;
+        border: 1px solid var(--ims-line);
+        border-top: 0;
+        box-shadow: 0 20px 45px rgba(0,43,91,.10);
     }
 
-    .section-subtitle {
-        color: #64748b;
-        max-width: 700px;
-        margin: auto;
+    .ims-alert-dot {
+        display: inline-block;
+        width: 10px; height: 10px;
+        margin-right: .6rem;
+        border-radius: 50%;
+        background: var(--ims-alert);
+        box-shadow: 0 0 0 0 rgba(214,40,40,.5);
+        animation: ims-pulse 2s infinite;
+        vertical-align: middle;
+    }
+    @keyframes ims-pulse {
+        0% { box-shadow: 0 0 0 0 rgba(214,40,40,.5); }
+        70% { box-shadow: 0 0 0 10px rgba(214,40,40,0); }
+        100% { box-shadow: 0 0 0 0 rgba(214,40,40,0); }
     }
 
-    .ims-section {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
+    .ims-news-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: #fff;
+        border: 1px solid var(--ims-line);
+        border-radius: var(--ims-radius);
+        overflow: hidden;
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .ims-news-card:hover {
+        transform: translateY(-4px);
+        border-color: #cfd9e6;
+        box-shadow: 0 16px 34px rgba(0,43,91,.12);
+    }
+    .ims-news-media { position: relative; height: 190px; overflow: hidden; background: #dfe7f1; }
+    .ims-news-media img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform .5s ease;
+    }
+    .ims-news-card:hover .ims-news-media img { transform: scale(1.05); }
+    .ims-news-media.is-fallback img { filter: brightness(.8) saturate(.9); }
+
+    .ims-chip {
+        position: absolute;
+        top: 14px; left: 14px;
+        padding: .3rem .75rem;
+        border-radius: 999px;
+        background: var(--ims-alert);
+        color: #fff;
+        font-size: .75rem;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(214,40,40,.35);
     }
 
-    .btn-modern {
-        border-radius: 50rem;
-        padding: .7rem 1.5rem;
-        font-weight: 600;
+    .ims-news-body { display: flex; flex-direction: column; flex: 1; padding: 1.25rem 1.35rem 1.35rem; }
+    .ims-news-meta { font-size: .8rem; color: var(--ims-muted); font-weight: 500; margin-bottom: .6rem; }
+    .ims-news-meta i { color: var(--ims-ocean); margin-right: .3rem; }
+    .ims-news-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1.35;
+        color: var(--ims-ink);
+        margin: 0 0 .55rem;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        min-height: 2.7em;
     }
-.hero-section {
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    min-height: 600px;
-    width: 100%;
-}
+    .ims-news-text {
+        font-size: .9rem;
+        line-height: 1.6;
+        color: var(--ims-muted);
+        margin: 0 0 1.1rem;
+        flex: 1;
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .ims-news-link {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        font-size: .88rem;
+        font-weight: 700;
+        color: var(--ims-alert);
+        text-decoration: none;
+        padding-top: .9rem;
+        border-top: 1px solid var(--ims-line);
+    }
+    .ims-news-link i { transition: transform .2s ease; }
+    .ims-news-card:hover .ims-news-link i { transform: translateX(4px); }
 
-.hero-overlay {
-    min-height: 600px;
-    display: flex;
-    align-items: center;
-    /* This ensures a subtle tint so white text is readable against bright images */
-    background: rgba(15, 23, 42, 0.45); 
-    width: 100%;
-}
+    .ims-empty {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        border: 1.5px dashed var(--ims-line);
+        border-radius: var(--ims-radius);
+        background: var(--ims-surface);
+    }
+    .ims-empty i { font-size: 2.4rem; color: #1f9d63; display: block; margin-bottom: .6rem; }
+    .ims-empty h5 { font-weight: 700; font-size: 1.05rem; margin-bottom: .3rem; }
+    .ims-empty p { color: var(--ims-muted); font-size: .9rem; margin: 0; }
 
-.min-vh-50 {
-    min-height: 500px;
-}
+    /* ---------- RESOURCES ---------- */
+    .ims-res-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 2rem 1.75rem 1.75rem;
+        background: #fff;
+        border: 1px solid var(--ims-line);
+        border-radius: var(--ims-radius);
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .ims-res-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent);
+        box-shadow: 0 18px 38px rgba(0,43,91,.10);
+    }
+    .ims-res-icon {
+        width: 58px; height: 58px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 16px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 1.5rem;
+        margin-bottom: 1.4rem;
+    }
+    .ims-res-card h5 { font-size: 1.15rem; font-weight: 700; margin: 0 0 .6rem; }
+    .ims-res-card p { color: var(--ims-muted); line-height: 1.65; font-size: .95rem; margin: 0 0 1.5rem; flex: 1; }
+    .ims-res-link {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        font-weight: 700;
+        font-size: .92rem;
+        color: var(--accent);
+        text-decoration: none;
+    }
+    .ims-res-link i { transition: transform .2s ease; }
+    .ims-res-card:hover .ims-res-link i { transform: translateX(4px); }
+    .ims-res-link:focus-visible,
+    .ims-news-link:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 4px; border-radius: 4px; }
 
-.section-title {
-    font-weight: 700;
-    color: #1e293b;
-}
+    .accent-blue  { --accent: #0b64c0; --accent-soft: #e5f0fc; }
+    .accent-green { --accent: #168a55; --accent-soft: #e4f6ec; }
+    .accent-teal  { --accent: #0a8ba3; --accent-soft: #e0f4f8; }
 
-.section-subtitle {
-    max-width: 700px;
-    margin: auto;
-    color: #64748b;
-}
+    /* ---------- MOBILE ---------- */
+    @media (max-width: 767px) {
+        .ims-hero { min-height: 0; }
+        .ims-hero-inner { padding: 3.25rem 0 6rem; }
+        .ims-badge { font-size: .74rem; padding: .45rem .85rem; }
+        .ims-hero .ims-lead { font-size: .98rem; margin-bottom: 1.75rem; }
+        .ims-hero-actions { flex-direction: column; }
+        .ims-btn { width: 100%; }
+        .ims-bulletins { margin-top: -3.5rem; }
+        .ims-bulletins-head { padding: 1.25rem 1.1rem .9rem; }
+        .ims-bulletins-body { padding: 0 1.1rem 1.25rem; }
+        .ims-news-media { height: 170px; }
+        .ims-section { padding-bottom: 3rem; }
+        .ims-res-card { padding: 1.5rem 1.35rem; }
+    }
 
-.feature-card {
-    background: #fff;
-    border-radius: 20px;
-    padding: 2rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,.06);
-}
-
-.service-card {
-    border: none;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.06);
-    transition: all .3s ease;
-    height: 100%;
-}
-
-.service-card:hover {
-    transform: translateY(-6px);
-}
-
-.icon-circle,
-.service-icon {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.service-icon {
-    margin: auto;
-    font-size: 1.75rem;
-}
-
-.btn-modern {
-    border-radius: 50px;
-    padding: .75rem 1.5rem;
-    font-weight: 600;
-}
+    @media (prefers-reduced-motion: reduce) {
+        .ims-alert-dot { animation: none; }
+        .ims-news-card, .ims-res-card, .ims-btn, .ims-news-media img { transition: none; }
+    }
 </style>
 
-<section class="hero-section" style="background-image: url('{% static 'images/emergency_hero.jpeg' %}');">
+<div class="ims-page">
 
-    <div class="hero-overlay">
-
-        <div class="container">
-
-            <div class="row align-items-center min-vh-50">
-
+    <!-- ===================================== -->
+    <!-- HERO -->
+    <!-- ===================================== -->
+    <section class="ims-hero" style="--hero-img: url('{% static 'images/emergency_hero1.jpg' %}');">
+        <div class="container ims-hero-inner">
+            <div class="row">
                 <div class="col-lg-8">
 
-                    <span class="badge bg-light text-primary px-3 py-2 mb-3">
+                    <span class="ims-badge">
                         National Disaster Risk Management Information Management System
                     </span>
 
-                    <h1 class="display-4 fw-bold text-white mb-3">
-                        Building Resilience Through Information
-                    </h1>
-                        <p class="lead text-white fw-medium mb-4 text-shadow-dark">
-                            Supporting disaster preparedness, emergency response,
-                            recovery coordination, and climate resilience through
-                            trusted data, actionable insights, and accessible information resources.
-                        </p>
+                    <h1>Building Resilience Through Information</h1>
 
-                    <div class="d-flex flex-wrap gap-3">
+                    <p class="ims-lead">
+                        Supporting disaster preparedness, emergency response,
+                        recovery coordination, and climate resilience through
+                        trusted data, actionable insights, and accessible information resources.
+                    </p>
 
-                        <a href="{% url 'portal:news_list' %}"
-                           class="btn btn-outline-light btn-lg px-4">
-                            <i class="bi bi-newspaper"></i>
-                            News & Updates
+                    <div class="d-flex flex-wrap gap-3 ims-hero-actions">
+                        <a href="{% url 'portal:news_list' %}" class="ims-btn ims-btn-light">
+                            <i class="bi bi-newspaper"></i> News &amp; Updates
                         </a>
-
-                        <a href="{% url 'repositories:plans_repository' %}"
-                           class="btn btn-outline-light btn-lg px-4">
-                            <i class="bi bi-file-earmark-text me-2"></i>
-                            Response Plans
+                        <a href="{% url 'repositories:plans_repository' %}" class="ims-btn ims-btn-ghost">
+                            <i class="bi bi-file-earmark-text"></i> Response Plans
                         </a>
-
                     </div>
 
                 </div>
-
             </div>
+        </div>
+    </section>
 
+    <!-- ===================================== -->
+    <!-- PUBLIC BULLETINS -->
+    <!-- ===================================== -->
+    <section class="container ims-bulletins ims-section">
+
+        <div class="ims-bulletins-head">
+            <div class="d-flex justify-content-between align-items-end gap-3 flex-wrap">
+                <div>
+                    <h2 class="ims-heading"><span class="ims-alert-dot"></span>Public Bulletins &amp; Alerts</h2>
+                    <p class="ims-sub">The latest official disaster risk declarations, weather summaries, and advisory notices.</p>
+                </div>
+                <a href="{% url 'portal:news_list' %}" class="ims-link-all d-none d-sm-inline-flex">
+                    View all bulletins <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
         </div>
 
-    </div>
+        <div class="ims-bulletins-body">
+            <div class="row g-4">
+                {% for bulletin in recent_bulletins %}
+                    <div class="col-lg-4 col-md-6">
+                        <article class="ims-news-card">
 
-</section>
+                            <div class="ims-news-media{% if not bulletin.featured_image %} is-fallback{% endif %}">
+                                {% if bulletin.featured_image %}
+                                    <img src="{{ bulletin.featured_image.url }}" alt="{{ bulletin.title }}" loading="lazy">
+                                {% else %}
+                                    <img src="{% static 'images/emergency_hero1.jpg' %}" alt="{{ bulletin.title }}" loading="lazy">
+                                {% endif %}
+                                <span class="ims-chip">{{ bulletin.get_category_display }}</span>
+                            </div>
 
-<section class="container mb-5 ims-section">
-    <div class="d-flex justify-content-between align-items-end mb-4">
-        <div>
-            <h2 class="section-title mb-1">🚨 Public Bulletins & Alerts</h2>
-            <p class="text-muted mb-0">The latest official disaster risk declarations, weather summaries, and advisory notices.</p>
+                            <div class="ims-news-body">
+                                <div class="ims-news-meta">
+                                    <i class="bi bi-geo-alt-fill"></i>{{ bulletin.get_state_tag_display }}
+                                </div>
+
+                                <h5 class="ims-news-title">{{ bulletin.title }}</h5>
+
+                                <p class="ims-news-text">
+                                    {{ bulletin.summary|default:bulletin.content|truncatechars:140 }}
+                                </p>
+
+                                <a href="{% url 'portal:news_detail' slug=bulletin.slug %}" class="ims-news-link stretched-link">
+                                    Read full bulletin <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+
+                        </article>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="ims-empty">
+                            <i class="bi bi-shield-check"></i>
+                            <h5>No active emergency bulletins or alerts at this time.</h5>
+                            <p>System status operational. All regional indicators remain clear.</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-4 d-sm-none">
+                <a href="{% url 'portal:news_list' %}" class="ims-link-all w-100 justify-content-center">
+                    View all bulletins <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
         </div>
-        <a href="{% url 'portal:news_list' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold d-none d-sm-inline-block">
-            View All Bulletins <i class="bi bi-arrow-right ms-1"></i>
-        </a>
-    </div>
 
-    <div class="row g-4">
-        {% for bulletin in recent_bulletins %}
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 shadow-sm border-0 overflow-hidden" style="border-radius: 1.25rem; background: #fff; transition: transform 0.3s ease, box-shadow 0.3s ease;">
-                    
-                    <div class="position-relative bg-light" style="height: 200px; overflow: hidden;">
-                        {% if bulletin.featured_image %}
-                            <img src="{{ bulletin.featured_image.url }}" 
-                                 alt="{{ bulletin.title }}" 
-                                 class="w-100 h-100 object-fit-cover">
-                        {% else %}
-                            <img src="{% static 'images/emergency_hero.jpeg' %}" 
-                                 alt="{{ bulletin.title }}" 
-                                 class="w-100 h-100 object-fit-cover"
-                                 style="filter: brightness(0.85);">
-                        {% endif %}
-                        
-                        <span class="position-absolute top-0 start-0 m-3 badge bg-danger fw-bold shadow-sm">
-                            {{ bulletin.get_category_display }}
-                        </span>
-                    </div>
+    </section>
 
-                    <div class="card-body p-4 d-flex flex-column">
-                        <div class="mb-2">
-                            <small class="text-muted">
-                                <i class="bi bi-geo-alt-fill me-1"></i> {{ bulletin.get_state_tag_display }}
-                            </small>
-                        </div>
-                        
-                        <h5 class="fw-bold text-dark mb-2 line-clamp-2" style="font-size: 1.15rem; min-height: 2.7em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                            {{ bulletin.title }}
-                        </h5>
-                        
-                        <p class="text-secondary small flex-grow-1 mb-3" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 4.5em;">
-                            {{ bulletin.summary|default:bulletin.content|truncatechars:140 }}
-                        </p>
-                        
-                        <div class="border-top pt-3 mt-auto">
-                            <a href="{% url 'portal:news_detail' slug=bulletin.slug %}" class="text-decoration-none fw-bold text-danger small d-flex align-items-center stretched-link">
-                                Read Full Bulletin <i class="bi bi-chevron-right ms-1 small"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% empty %}
-            <div class="col-12">
-                <div class="p-5 text-center text-muted bg-white rounded-4 border shadow-sm">
-                    <i class="bi bi-shield-check text-success display-5 d-block mb-2"></i>
-                    <h5>No active emergency bulletins or alerts posted at this time.</h5>
-                    <p class="small text-secondary mb-0">System status operational. All regional indicators remain clear.</p>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-    
-    <div class="text-center mt-4 d-sm-none">
-        <a href="{% url 'portal:news_list' %}" class="btn btn-outline-danger w-100 fw-bold">
-            View All Bulletins
-        </a>
-    </div>
-</section>
+    <!-- ===================================== -->
+    <!-- INFORMATION & RESOURCES -->
+    <!-- ===================================== -->
+    <section class="container ims-section">
 
+        <div class="mb-4 mb-md-5">
+            <h2 class="ims-heading">Information &amp; Resources</h2>
+            <p class="ims-sub">
+                Access essential services, emergency information, and preparedness
+                resources from a single trusted platform.
+            </p>
+        </div>
 
-<!-- ===================================== -->
-<!-- INFORMATION & RESOURCES -->
-<!-- ===================================== -->
+        <div class="row g-4">
 
-<section class="container mb-5">
-
-    <div class="text-center mb-5">
-
-        <h2 class="section-title">
-            Information & Resources
-        </h2>
-
-        <p class="section-subtitle">
-            Access essential services, emergency information, and preparedness
-            resources from a single trusted platform.
-        </p>
-
-    </div>
-
-    <div class="row g-4">
-
-        <!-- CONTACTS -->
-
-        <div class="col-md-4">
-
-            <div class="service-card">
-
-                <div class="card-body text-center p-4">
-
-                    <div class="service-icon bg-primary-subtle text-primary">
-                        <i class="bi bi-telephone-fill"></i>
-                    </div>
-
-                    <h5 class="service-title">
-                        Emergency Contacts
-                    </h5>
-
-                    <p class="service-text">
+            <!-- CONTACTS -->
+            <div class="col-md-4">
+                <div class="ims-res-card accent-blue">
+                    <div class="ims-res-icon"><i class="bi bi-telephone-fill"></i></div>
+                    <h5>Emergency Contacts</h5>
+                    <p>
                         Access verified contact details for emergency responders,
                         hospitals, fire services, law enforcement, and disaster
                         management offices.
                     </p>
-
-                    <a href="{% url 'directories:directory_list' %}"
-                       class="btn btn-primary btn-modern">
-                        View Directory
+                    <a href="{% url 'directories:directory_list' %}" class="ims-res-link stretched-link">
+                        View directory <i class="bi bi-arrow-right"></i>
                     </a>
-
                 </div>
-
             </div>
 
-        </div>
-
-        <!-- PLANS -->
-
-        <div class="col-md-4">
-
-            <div class="service-card">
-
-                <div class="card-body text-center p-4">
-
-                    <div class="service-icon bg-success-subtle text-success">
-                        <i class="bi bi-file-earmark-text-fill"></i>
-                    </div>
-
-                    <h5 class="service-title">
-                        Plans & Guidelines
-                    </h5>
-
-                    <p class="service-text">
+            <!-- PLANS -->
+            <div class="col-md-4">
+                <div class="ims-res-card accent-green">
+                    <div class="ims-res-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+                    <h5>Plans &amp; Guidelines</h5>
+                    <p>
                         Explore preparedness frameworks, contingency plans,
                         standard operating procedures, and resilience guidance.
                     </p>
-
-                    <a href="{% url 'repositories:plans_repository' %}"
-                       class="btn btn-success btn-modern">
-                        Explore Plans
+                    <a href="{% url 'repositories:plans_repository' %}" class="ims-res-link stretched-link">
+                        Explore plans <i class="bi bi-arrow-right"></i>
                     </a>
-
                 </div>
-
             </div>
 
-        </div>
-
-        <!-- FAQ -->
-
-        <div class="col-md-4">
-
-            <div class="service-card">
-
-                <div class="card-body text-center p-4">
-
-                    <div class="service-icon bg-info-subtle text-info">
-                        <i class="bi bi-question-circle-fill"></i>
-                    </div>
-
-                    <h5 class="service-title">
-                        Help & FAQs
-                    </h5>
-
-                    <p class="service-text">
+            <!-- FAQ -->
+            <div class="col-md-4">
+                <div class="ims-res-card accent-teal">
+                    <div class="ims-res-icon"><i class="bi bi-question-circle-fill"></i></div>
+                    <h5>Help &amp; FAQs</h5>
+                    <p>
                         Learn about preparedness measures, evacuation guidance,
                         relief assistance processes, and disaster recovery.
                     </p>
-
-                    <a href="{% url 'portal:faq_list' %}"
-                       class="btn btn-info text-white btn-modern">
-                        Learn More
+                    <a href="{% url 'portal:faq_list' %}" class="ims-res-link stretched-link">
+                        Learn more <i class="bi bi-arrow-right"></i>
                     </a>
-
                 </div>
-
             </div>
 
         </div>
 
-    </div>
+    </section>
 
-</section>
+</div>
 
+</main>
 {% endblock %}

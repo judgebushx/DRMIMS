@@ -50,7 +50,7 @@ class DocumentHubListView(ListView):
     
     # Setting default property configuration layers
     category_filter = None 
-    page_title = "Document Repository"
+    page_title = "Strategic Documents Repository"
 
     def get_queryset(self):
         # 1. Filter dataset down to the explicit category designated by the URL route

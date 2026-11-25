@@ -1,121 +1,282 @@
 {% extends 'base.html' %}
 
+{% block title %}{{ page_title }} | FSM DRM-IMS{% endblock %}
+
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home Dashboard</a></li>
-                <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
-            </ol>
-        </nav>
-        <h1 class="fw-bold text-dark">{{ page_title }}</h1>
-        <p class="text-muted">Access institutional documents, standard operational mandates, vulnerability charts, and strategic policy declarations framework across the FSM.</p>
-    </div>
-</div>
+
+<style>
+    /* ==========================
+       DRMIMS Document Repository
+       (colors and font come from base.html)
+       ========================== */
+    .ims-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 0 0 1.25rem; padding: 0; list-style: none; font-size: .85rem; font-weight: 600; }
+    .ims-crumbs a { color: var(--ims-muted); text-decoration: none; transition: color .2s ease; }
+    .ims-crumbs a:hover { color: var(--ims-ocean); }
+    .ims-crumbs a:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 2px; border-radius: 3px; }
+    .ims-crumbs li + li::before { content: '\F285'; font-family: 'bootstrap-icons'; font-size: .7rem; color: #a3afbf; margin-right: .5rem; vertical-align: middle; }
+    .ims-crumbs li[aria-current] { color: var(--ims-ink); }
+
+    .ims-page-head {
+        position: relative;
+        padding: 2.75rem 2.25rem;
+        margin-bottom: 2rem;
+        border-radius: 18px;
+        color: #fff;
+        background: linear-gradient(110deg, var(--ims-navy-deep) 0%, var(--ims-navy) 60%, #0a5a93 100%);
+        overflow: hidden;
+    }
+    .ims-page-head::after {
+        content: '';
+        position: absolute;
+        right: -60px; top: -60px;
+        width: 260px; height: 260px;
+        border-radius: 50%;
+        border: 40px solid rgba(255,255,255,.05);
+        pointer-events: none;
+    }
+    .ims-page-head h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 .6rem; }
+    .ims-page-head p { margin: 0; max-width: 66ch; line-height: 1.7; color: rgba(255,255,255,.85); }
+
+    /* ---------- FILTER PANEL ---------- */
+    .ims-filter {
+        position: sticky; top: 90px;
+        padding: 1.6rem;
+        background: #fff;
+        border: 1px solid var(--ims-line);
+        border-radius: 18px;
+        box-shadow: 0 10px 28px rgba(0,43,91,.06);
+    }
+    .ims-filter h2 { display: flex; align-items: center; gap: .6rem; font-size: 1.05rem; font-weight: 800; margin: 0 0 1.25rem; }
+    .ims-filter h2 i { color: var(--ims-ocean); }
+    .ims-label { display: block; margin-bottom: .4rem; font-size: .8rem; font-weight: 700; color: var(--ims-muted); }
+    .ims-field { margin-bottom: 1.1rem; }
+
+    .ims-filter input,
+    .ims-filter select {
+        width: 100%;
+        padding: .7rem .95rem;
+        border: 1.5px solid var(--ims-line);
+        border-radius: 12px;
+        background-color: var(--ims-surface);
+        font-size: .92rem;
+        color: var(--ims-ink);
+        transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+    }
+    .ims-filter input:focus,
+    .ims-filter select:focus {
+        outline: none;
+        border-color: var(--ims-ocean);
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(0,119,182,.18);
+    }
+
+    .ims-btn {
+        display: flex; align-items: center; justify-content: center; gap: .5rem;
+        width: 100%;
+        padding: .8rem 1rem;
+        border: 0;
+        border-radius: 999px;
+        background: var(--ims-navy);
+        color: #fff;
+        font-size: .92rem; font-weight: 700;
+        cursor: pointer;
+        transition: background .2s ease;
+    }
+    .ims-btn:hover { background: var(--ims-ocean); }
+    .ims-btn:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 3px; }
+    .ims-clear { display: block; margin-top: .75rem; text-align: center; font-size: .85rem; font-weight: 600; color: var(--ims-muted); text-decoration: none; }
+    .ims-clear:hover { color: var(--ims-ocean); }
+
+    /* ---------- RESULTS ---------- */
+    .ims-results-head { display: flex; align-items: center; gap: .7rem; margin-bottom: 1.1rem; }
+    .ims-results-head h2 { font-size: 1.1rem; font-weight: 800; margin: 0; }
+    .ims-count { padding: .25rem .75rem; border-radius: 999px; background: #e5f0fc; color: #0b64c0; font-size: .8rem; font-weight: 700; }
+
+    .ims-docs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .85rem; }
+    .ims-doc {
+        display: flex; align-items: center; gap: 1.1rem;
+        padding: 1.2rem 1.35rem;
+        background: #fff;
+        border: 1px solid var(--ims-line);
+        border-radius: 16px;
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .ims-doc:hover { transform: translateY(-3px); border-color: #cfd9e6; box-shadow: 0 14px 30px rgba(0,43,91,.10); }
+
+    .ims-doc-icon {
+        width: 50px; height: 50px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 14px;
+        background: #fdeaea; color: #c11f1f;
+        font-size: 1.4rem;
+    }
+    .ims-doc-main { flex: 1; min-width: 0; }
+    .ims-doc-title { font-size: 1rem; font-weight: 700; line-height: 1.4; color: var(--ims-ink); margin: 0 0 .45rem; }
+    .ims-doc-tags { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5rem; margin-bottom: .45rem; }
+    .ims-tag { padding: .22rem .65rem; border-radius: 999px; font-size: .73rem; font-weight: 700; }
+    .ims-tag-state { background: #e5f0fc; color: #0b64c0; }
+    .ims-tag-type { background: #eef1f5; color: #44556a; }
+    .ims-doc-meta { font-size: .78rem; font-weight: 600; color: var(--ims-muted); }
+    .ims-doc-desc {
+        margin: .55rem 0 0;
+        font-size: .86rem; line-height: 1.6; color: var(--ims-muted);
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    .ims-dl {
+        display: inline-flex; align-items: center; gap: .5rem;
+        flex-shrink: 0;
+        padding: .65rem 1.15rem;
+        border-radius: 999px;
+        border: 1.5px solid var(--ims-line);
+        background: #fff;
+        color: var(--ims-navy);
+        font-size: .86rem; font-weight: 700;
+        text-decoration: none;
+        transition: background .2s ease, color .2s ease, border-color .2s ease;
+    }
+    .ims-doc:hover .ims-dl, .ims-dl:hover { background: var(--ims-navy); border-color: var(--ims-navy); color: #fff; }
+    .ims-dl:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 3px; }
+
+    .ims-empty { text-align: center; padding: 3.5rem 1.5rem; border: 1.5px dashed var(--ims-line); border-radius: 18px; background: #fff; }
+    .ims-empty i { font-size: 2.2rem; color: var(--ims-muted); display: block; margin-bottom: .6rem; }
+    .ims-empty h5 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+
+    /* ---------- PAGINATION ---------- */
+    .ims-pager { display: flex; justify-content: center; align-items: center; gap: .6rem; margin-top: 2rem; flex-wrap: wrap; }
+    .ims-pager a, .ims-pager span { padding: .55rem 1.15rem; border-radius: 999px; font-size: .88rem; font-weight: 600; text-decoration: none; }
+    .ims-pager a { background: #fff; border: 1.5px solid var(--ims-line); color: var(--ims-navy); transition: border-color .2s ease, color .2s ease; }
+    .ims-pager a:hover { border-color: var(--ims-ocean); color: var(--ims-ocean); }
+    .ims-pager span { color: var(--ims-muted); }
+
+    @media (max-width: 991px) { .ims-filter { position: static; } }
+    @media (max-width: 575px) {
+        .ims-page-head { padding: 1.75rem 1.25rem; }
+        .ims-doc { flex-wrap: wrap; padding: 1.1rem; }
+        .ims-doc-icon { width: 44px; height: 44px; font-size: 1.2rem; }
+        .ims-doc-main { flex-basis: calc(100% - 64px); }
+        .ims-dl { width: 100%; justify-content: center; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .ims-doc, .ims-btn, .ims-dl { transition: none; }
+    }
+</style>
+
+<nav aria-label="breadcrumb">
+    <ol class="ims-crumbs">
+        <li><a href="{% url 'portal:home' %}">Home</a></li>
+        <li aria-current="page">{{ page_title }}</li>
+    </ol>
+</nav>
+
+<header class="ims-page-head">
+    <h1>{{ page_title }}</h1>
+    <p>Access institutional documents, standard operational mandates, vulnerability charts, and strategic policy declarations framework across the FSM.</p>
+</header>
 
 <div class="row g-4">
-    <div class="col-lg-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-primary text-white fw-bold py-3">Search & Filter Framework</div>
-            <div class="card-body">
-                <form method="get">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Keyword Indexing</label>
-                        {{ filterform.search }}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">State/Jurisdiction</label>
-                        <select name="state" class="form-select">
-                            {% for value, text in filterform.fields.state.choices %}
-                                <option value="{{ value }}" {% if value == request.GET.state %}selected{% endif %}>{{ text }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Document Classification Subtype</label>
-                        <select name="sub_type" class="form-select">
-                            {% for value, text in filterform.fields.sub_type.choices %}
-                                <option value="{{ value }}" {% if value == request.GET.sub_type %}selected{% endif %}>{{ text }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Publication Year Range</label>
-                        <input type="number" name="published_year" class="form-control" value="{{ request.GET.published_year }}" placeholder="e.g. 2026">
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Apply Search Parameters</button>
-                    {% if current_category == 'DM_PLAN' %}
-                        <a href="{% url 'repositories:plans_repository' %}" class="btn btn-light border btn-sm d-block text-center mt-2">Reset Canvas</a>
-                    {% elif current_category == 'RISK_PROFILE' %}
-                        <a href="{% url 'repositories:risk_repository' %}" class="btn btn-light border btn-sm d-block text-center mt-2">Reset Canvas</a>
-                    {% else %}
-                        <a href="{% url 'repositories:area_repository' %}" class="btn btn-light border btn-sm d-block text-center mt-2">Reset Canvas</a>
-                    {% endif %}
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <div class="col-lg-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4">
-                <h5 class="fw-bold mb-3 text-secondary">Matching Records Ledger ({{ documents.count }})</h5>
-                
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light text-uppercase small text-secondary">
-                            <tr>
-                                <th scope="col" style="width: 50%;">Document Title</th>
-                                <th scope="col">Jurisdiction</th>
-                                <th scope="col">Type</th>
-                                <th scope="col" class="text-end">Resource</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for doc in documents %}
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold text-dark mb-0">{{ doc.title }}</div>
-                                        <small class="text-muted d-block" style="font-size: 11px;">Published: {{ doc.published_year }} | Uploaded via DRM Dashboard</small>
-                                        {% if doc.description %}
-                                            <small class="text-secondary d-block mt-1 bg-light p-1 rounded border-start border-3" style="font-size: 11px;">{{ doc.description|truncatechars:120 }}</small>
-                                        {% endif %}
-                                    </td>
-                                    <td><span class="badge bg-secondary text-uppercase">{{ doc.get_state_display }}</span></td>
-                                    <td><small class="fw-semibold text-muted">{{ doc.get_sub_type_display }}</small></td>
-                                    <td class="text-end">
-                                        <a href="{{ doc.file.url }}" target="_blank" class="btn btn-outline-danger btn-sm fw-bold">
-                                            📥 Download
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center py-5 text-muted">
-                                        No historical or master files matches the active filter criteria.
-                                    </td>
-                                endfor %}
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    <!-- ===== FILTERS ===== -->
+    <div class="col-lg-4">
+        <div class="ims-filter">
+            <h2><i class="bi bi-funnel-fill"></i> Search &amp; filter</h2>
+
+            <form method="get">
+                <div class="ims-field">
+                    <label class="ims-label">Keyword</label>
+                    {{ filterform.search }}
                 </div>
 
-                {% if is_paginated %}
-                    <nav class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
-                            {% endif %}
-                            <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
-                            {% if page_obj.has_next %}
-                                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+                <div class="ims-field">
+                    <label class="ims-label" for="repState">State / jurisdiction</label>
+                    <select name="state" id="repState" class="form-select">
+                        {% for value, text in filterform.fields.state.choices %}
+                            <option value="{{ value }}" {% if value == request.GET.state %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="ims-field">
+                    <label class="ims-label" for="repSub">Document type</label>
+                    <select name="sub_type" id="repSub" class="form-select">
+                        {% for value, text in filterform.fields.sub_type.choices %}
+                            <option value="{{ value }}" {% if value == request.GET.sub_type %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="ims-field">
+                    <label class="ims-label" for="repYear">Publication year</label>
+                    <input type="number" name="published_year" id="repYear" class="form-control" value="{{ request.GET.published_year }}" placeholder="e.g. 2026">
+                </div>
+
+                <button type="submit" class="ims-btn"><i class="bi bi-search"></i> Apply filters</button>
+
+                {% if current_category == 'DM_PLAN' %}
+                    <a href="{% url 'repositories:plans_repository' %}" class="ims-clear">Clear filters</a>
+                {% elif current_category == 'RISK_PROFILE' %}
+                    <a href="{% url 'repositories:risk_repository' %}" class="ims-clear">Clear filters</a>
+                {% elif current_category == 'AREA_PROFILE' %}
+                    <a href="{% url 'repositories:area_repository' %}" class="ims-clear">Clear filters</a>
+                {% elif current_category == 'ASSESSMENT TOOLS' %}
+                    <a href="{% url 'repositories:assessment_tools_repository' %}" class="ims-clear">Clear filters</a>
                 {% endif %}
-            </div>
+            </form>
         </div>
     </div>
+
+    <!-- ===== RESULTS ===== -->
+    <div class="col-lg-8">
+
+        <div class="ims-results-head">
+            <h2>Matching documents</h2>
+            <span class="ims-count">{{ documents.count }}</span>
+        </div>
+
+        <ul class="ims-docs">
+            {% for doc in documents %}
+                <li class="ims-doc">
+                    <div class="ims-doc-icon"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+
+                    <div class="ims-doc-main">
+                        <h3 class="ims-doc-title">{{ doc.title }}</h3>
+                        <div class="ims-doc-tags">
+                            <span class="ims-tag ims-tag-state">{{ doc.get_state_display }}</span>
+                            <span class="ims-tag ims-tag-type">{{ doc.get_sub_type_display }}</span>
+                            <span class="ims-doc-meta">Published {{ doc.published_year }} &nbsp;·&nbsp; Uploaded by DECEM</span>
+                        </div>
+                        {% if doc.description %}
+                            <p class="ims-doc-desc">{{ doc.description|truncatechars:120 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <a href="{{ doc.file.url }}" target="_blank" rel="noopener" class="ims-dl" aria-label="Download {{ doc.title }}">
+                        <i class="bi bi-download"></i> Download
+                    </a>
+                </li>
+            {% empty %}
+                <li>
+                    <div class="ims-empty">
+                        <i class="bi bi-folder2-open"></i>
+                        <h5>No documents match your filters. Try clearing one.</h5>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+        {% if is_paginated %}
+            <nav class="ims-pager" aria-label="Document pages">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% for k, v in request.GET.items %}{% if k != 'page' %}&amp;{{ k }}={{ v|urlencode }}{% endif %}{% endfor %}"><i class="bi bi-arrow-left me-1"></i>Previous</a>
+                {% endif %}
+                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% for k, v in request.GET.items %}{% if k != 'page' %}&amp;{{ k }}={{ v|urlencode }}{% endif %}{% endfor %}">Next<i class="bi bi-arrow-right ms-1"></i></a>
+                {% endif %}
+            </nav>
+        {% endif %}
+
+    </div>
 </div>
+
 {% endblock %}

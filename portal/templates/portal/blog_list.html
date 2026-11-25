@@ -1,90 +1,344 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12 text-center text-md-start">
-        <h1 class="fw-bold text-dark">Updates & Public Bulletins</h1>
-        <p class="text-muted lead">Stay informed with direct announcements, hazard situation maps, and response notifications from state and national disaster officers.</p>
-    </div>
-</div>
 
-<div class="d-flex flex-wrap gap-2 mb-4 justify-content-start">
-    <a href="{% url 'portal:news_list' %}" class="btn btn-sm {% if not current_category %}btn-primary{% else %}btn-outline-secondary{% endif %} fw-semibold">📋 All Bulletins</a>
-    {% for cat_key, cat_name in categories %}
-        <a href="{% url 'portal:news_list' %}?category={{ cat_key }}" class="btn btn-sm {% if current_category == cat_key %}btn-primary{% else %}btn-outline-secondary{% endif %} fw-semibold">
-            {{ cat_name }}
-        </a>
-    {% endfor %}
-</div>
-
-<div class="row g-4">
-    <div class="col-lg-9">
-        <div class="row g-4">
-            {% for post in posts %}
-                <div class="col-md-6">
-                    <div class="card h-100 border-0 shadow-sm overflow-hidden d-flex flex-column custom-card-hover">
-                        {% if post.featured_image %}
-                            <img src="{{ post.featured_image.url }}" class="card-img-top object-fit-cover" style="height: 200px;" alt="Notice context illustration">
-                        {% else %}
-                            <div class="bg-secondary-subtle d-flex align-items-center justify-content-center text-muted" style="height: 200px;">
-                                <span>📢 No Banner Uploaded</span>
-                            </div>
-                        {% endif %}
-                        <div class="card-body p-4 d-flex flex-column">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="badge bg-primary-subtle text-primary border fw-bold">{{ post.get_category_display }}</span>
-                                <span class="badge bg-secondary-subtle text-secondary border small">{{ post.get_state_tag_display }}</span>
-                            </div>
-                            <h4 class="fw-bold text-dark mb-2 mt-1">{{ post.title }}</h4>
-                            <p class="text-muted small mb-3 flex-grow-1 lh-relaxed">{{ post.summary }}</p>
-                            
-                            <div class="border-top pt-3 mt-auto d-flex justify-content-between align-items-center">
-                                <small class="text-secondary font-monospace">{{ post.published_date|date:"M d, Y" }}</small>
-                                <a href="{% url 'portal:news_detail' post.slug %}" class="btn btn-link btn-sm fw-bold text-primary p-0 text-decoration-none">Read Full Article →</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="col-12">
-                    <div class="card p-5 text-center text-muted border-0 shadow-sm">
-                        <h5>No emergency publications listed within this notification category.</h5>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
-        {% if is_paginated %}
-            <nav class="mt-5">
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}">Previous</a></li>
-                    {% endif %}
-                    <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
-                    {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}">Next</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% endif %}
-    </div>
-
-    <div class="col-lg-3">
-        <div class="card border-0 shadow-sm bg-dark text-white p-4 mb-4">
-            <h5 class="fw-bold text-warning mb-2">⚠️ Emergency Rule</h5>
-            <p class="small text-light opacity-75 mb-0">During active storms or high-surf emergencies, check timestamps carefully. Always cross-check information with public broadcast radio alerts.</p>
-        </div>
-        <div class="card border-0 shadow-sm p-4 bg-white">
-            <h6 class="fw-bold text-dark mb-2">Need Direct Contacts?</h6>
-            <p class="small text-muted mb-3">If you need to reach out to specific state authorities immediately, check our public directory mapping.</p>
-            <a href="{% url 'directories:directory_list' %}" class="btn btn-outline-primary btn-sm w-100 fw-bold">Open Phone Directory</a>
-        </div>
-    </div>
-</div>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    .custom-card-hover { transition: transform 0.25s ease, box-shadow 0.25s ease; }
-    .custom-card-hover:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1.5rem rgba(0,0,0,0.1)!important; }
-    .lh-relaxed { line-height: 1.6; }
+    /* ==========================
+       DRMIMS News & Bulletins
+       ========================== */
+    :root {
+        --ims-navy: #002b5b;
+        --ims-navy-deep: #021a38;
+        --ims-ocean: #0077b6;
+        --ims-alert: #d62828;
+        --ims-ink: #14213d;
+        --ims-muted: #5f6b7a;
+        --ims-line: #e4e9f0;
+        --ims-surface: #f5f8fc;
+        --ims-radius: 18px;
+    }
+
+    .ims-news-page {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        color: var(--ims-ink);
+        padding-bottom: 3rem;
+    }
+
+    /* ---------- HEADER ---------- */
+    .ims-page-head {
+        position: relative;
+        padding: 2.5rem 2.25rem;
+        margin-bottom: 1.75rem;
+        border-radius: var(--ims-radius);
+        color: #fff;
+        background: linear-gradient(110deg, var(--ims-navy-deep) 0%, var(--ims-navy) 60%, #0a5a93 100%);
+        overflow: hidden;
+    }
+    .ims-page-head::after {
+        content: '';
+        position: absolute;
+        right: -60px; top: -60px;
+        width: 260px; height: 260px;
+        border-radius: 50%;
+        border: 40px solid rgba(255,255,255,.05);
+        pointer-events: none;
+    }
+    .ims-page-head h1 {
+        font-size: clamp(1.7rem, 4vw, 2.5rem);
+        font-weight: 800;
+        letter-spacing: -.02em;
+        margin: 0 0 .6rem;
+    }
+    .ims-page-head p {
+        margin: 0;
+        max-width: 62ch;
+        line-height: 1.7;
+        color: rgba(255,255,255,.85);
+    }
+
+    /* ---------- FILTER PILLS ---------- */
+    .ims-filters {
+        display: flex;
+        gap: .5rem;
+        margin-bottom: 1.75rem;
+        overflow-x: auto;
+        padding-bottom: .35rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    .ims-pill {
+        flex-shrink: 0;
+        padding: .5rem 1.05rem;
+        border-radius: 999px;
+        border: 1.5px solid var(--ims-line);
+        background: #fff;
+        color: var(--ims-muted);
+        font-size: .86rem;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: border-color .2s ease, color .2s ease, background .2s ease;
+    }
+    .ims-pill:hover { border-color: var(--ims-ocean); color: var(--ims-ocean); }
+    .ims-pill.active { background: var(--ims-navy); border-color: var(--ims-navy); color: #fff; }
+    .ims-pill:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 2px; }
+
+    /* ---------- NEWS CARDS ---------- */
+    .ims-news-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: #fff;
+        border: 1px solid var(--ims-line);
+        border-radius: var(--ims-radius);
+        overflow: hidden;
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .ims-news-card:hover {
+        transform: translateY(-4px);
+        border-color: #cfd9e6;
+        box-shadow: 0 16px 34px rgba(0,43,91,.12);
+    }
+    .ims-news-media {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #e4ecf6, #d3e0ef);
+    }
+    .ims-news-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+    .ims-news-card:hover .ims-news-media img { transform: scale(1.05); }
+    .ims-news-placeholder {
+        height: 100%;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: .4rem;
+        color: #7d8da3;
+        font-size: .85rem;
+        font-weight: 600;
+    }
+    .ims-news-placeholder i { font-size: 1.8rem; }
+
+    .ims-chip {
+        position: absolute;
+        top: 14px; left: 14px;
+        padding: .3rem .75rem;
+        border-radius: 999px;
+        background: var(--ims-alert);
+        color: #fff;
+        font-size: .75rem;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(214,40,40,.35);
+    }
+
+    .ims-news-body { display: flex; flex-direction: column; flex: 1; padding: 1.25rem 1.4rem 1.35rem; }
+    .ims-news-meta { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; font-size: .8rem; color: var(--ims-muted); font-weight: 500; margin-bottom: .6rem; }
+    .ims-news-meta i { color: var(--ims-ocean); margin-right: .3rem; }
+    .ims-news-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        line-height: 1.35;
+        color: var(--ims-ink);
+        margin: 0 0 .55rem;
+    }
+    .ims-news-text {
+        font-size: .9rem;
+        line-height: 1.65;
+        color: var(--ims-muted);
+        margin: 0 0 1.1rem;
+        flex: 1;
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .ims-news-foot {
+        display: flex; justify-content: space-between; align-items: center;
+        padding-top: .9rem;
+        border-top: 1px solid var(--ims-line);
+    }
+    .ims-date { font-size: .8rem; color: var(--ims-muted); font-weight: 600; }
+    .ims-news-link {
+        display: inline-flex; align-items: center; gap: .4rem;
+        font-size: .88rem; font-weight: 700;
+        color: var(--ims-alert);
+        text-decoration: none;
+    }
+    .ims-news-link i { transition: transform .2s ease; }
+    .ims-news-card:hover .ims-news-link i { transform: translateX(4px); }
+    .ims-news-link:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 4px; border-radius: 4px; }
+
+    .ims-empty {
+        text-align: center;
+        padding: 3.5rem 1.5rem;
+        border: 1.5px dashed var(--ims-line);
+        border-radius: var(--ims-radius);
+        background: #fff;
+    }
+    .ims-empty i { font-size: 2.2rem; color: var(--ims-muted); display: block; margin-bottom: .6rem; }
+    .ims-empty h5 { font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--ims-ink); }
+
+    /* ---------- PAGINATION ---------- */
+    .ims-pager { display: flex; justify-content: center; align-items: center; gap: .6rem; margin-top: 2.5rem; flex-wrap: wrap; }
+    .ims-pager a, .ims-pager span {
+        padding: .55rem 1.15rem;
+        border-radius: 999px;
+        font-size: .88rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .ims-pager a { background: #fff; border: 1.5px solid var(--ims-line); color: var(--ims-navy); transition: border-color .2s ease, color .2s ease; }
+    .ims-pager a:hover { border-color: var(--ims-ocean); color: var(--ims-ocean); }
+    .ims-pager span { color: var(--ims-muted); }
+
+    /* ---------- SIDEBAR ---------- */
+    .ims-side { position: sticky; top: 1.25rem; display: flex; flex-direction: column; gap: 1.25rem; }
+    .ims-notice {
+        padding: 1.6rem;
+        border-radius: var(--ims-radius);
+        background: var(--ims-navy-deep);
+        color: #fff;
+        border-left: 5px solid #f5a524;
+    }
+    .ims-notice h5 { font-size: 1.02rem; font-weight: 700; margin: 0 0 .5rem; color: #ffc65c; }
+    .ims-notice p { font-size: .88rem; line-height: 1.65; margin: 0; color: rgba(255,255,255,.78); }
+
+    .ims-contact {
+        padding: 1.6rem;
+        border-radius: var(--ims-radius);
+        background: #fff;
+        border: 1px solid var(--ims-line);
+    }
+    .ims-contact .ims-icon {
+        width: 46px; height: 46px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 13px;
+        background: #e5f0fc; color: #0b64c0;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+    .ims-contact h6 { font-size: 1rem; font-weight: 700; margin: 0 0 .4rem; }
+    .ims-contact p { font-size: .88rem; line-height: 1.65; color: var(--ims-muted); margin: 0 0 1.1rem; }
+    .ims-btn {
+        display: flex; align-items: center; justify-content: center; gap: .5rem;
+        padding: .7rem 1rem;
+        border-radius: 999px;
+        background: var(--ims-navy);
+        color: #fff;
+        font-size: .9rem; font-weight: 700;
+        text-decoration: none;
+        transition: background .2s ease;
+    }
+    .ims-btn:hover { background: var(--ims-ocean); color: #fff; }
+    .ims-btn:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 3px; }
+
+    @media (max-width: 991px) { .ims-side { position: static; } }
+    @media (max-width: 575px) {
+        .ims-page-head { padding: 1.75rem 1.25rem; }
+        .ims-news-media { height: 175px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .ims-news-card, .ims-news-media img, .ims-pill, .ims-btn { transition: none; }
+    }
 </style>
+
+<div class="ims-news-page">
+
+    <header class="ims-page-head">
+        <h1>Updates &amp; Public Bulletins</h1>
+        <p>Stay informed with direct announcements, hazard situation maps, and response notifications from state and national disaster officers.</p>
+    </header>
+
+    <nav class="ims-filters" aria-label="Filter bulletins by category">
+        <a href="{% url 'portal:news_list' %}" class="ims-pill{% if not current_category %} active{% endif %}">All bulletins</a>
+        {% for cat_key, cat_name in categories %}
+            <a href="{% url 'portal:news_list' %}?category={{ cat_key }}" class="ims-pill{% if current_category == cat_key %} active{% endif %}">{{ cat_name }}</a>
+        {% endfor %}
+    </nav>
+
+    <div class="row g-4">
+
+        <div class="col-lg-9">
+            <div class="row g-4">
+                {% for post in posts %}
+                    <div class="col-md-6">
+                        <article class="ims-news-card">
+
+                            <div class="ims-news-media">
+                                {% if post.featured_image %}
+                                    <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" loading="lazy">
+                                {% else %}
+                                    <div class="ims-news-placeholder">
+                                        <i class="bi bi-megaphone"></i>
+                                        <span>No banner uploaded</span>
+                                    </div>
+                                {% endif %}
+                                <span class="ims-chip">{{ post.get_category_display }}</span>
+                            </div>
+
+                            <div class="ims-news-body">
+                                <div class="ims-news-meta">
+                                    <span><i class="bi bi-geo-alt-fill"></i>{{ post.get_state_tag_display }}</span>
+                                </div>
+
+                                <h4 class="ims-news-title">{{ post.title }}</h4>
+                                <p class="ims-news-text">{{ post.summary }}</p>
+
+                                <div class="ims-news-foot">
+                                    <span class="ims-date"><i class="bi bi-calendar3 me-1"></i>{{ post.published_date|date:"M d, Y" }}</span>
+                                    <a href="{% url 'portal:news_detail' post.slug %}" class="ims-news-link stretched-link">
+                                        Read article <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                        </article>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="ims-empty">
+                            <i class="bi bi-inbox"></i>
+                            <h5>No emergency publications listed in this category.</h5>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if is_paginated %}
+                <nav class="ims-pager" aria-label="Bulletin pages">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}"><i class="bi bi-arrow-left me-1"></i>Previous</a>
+                    {% endif %}
+                    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}">Next<i class="bi bi-arrow-right ms-1"></i></a>
+                    {% endif %}
+                </nav>
+            {% endif %}
+        </div>
+
+        <aside class="col-lg-3">
+            <div class="ims-side">
+
+                <div class="ims-notice">
+                    <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Emergency rule</h5>
+                    <p>During active storms or high-surf emergencies, check timestamps carefully. Always cross-check information with public broadcast radio alerts.</p>
+                </div>
+
+                <div class="ims-contact">
+                    <div class="ims-icon"><i class="bi bi-telephone-fill"></i></div>
+                    <h6>Need direct contacts?</h6>
+                    <p>If you need to reach specific state authorities immediately, check our public directory.</p>
+                    <a href="{% url 'directories:directory_list' %}" class="ims-btn">Open phone directory</a>
+                </div>
+
+            </div>
+        </aside>
+
+    </div>
+
+</div>
+
 {% endblock %}

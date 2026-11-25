@@ -1,115 +1,296 @@
 {% extends 'base.html' %}
 
+{% block title %}Emergency Contacts Directory | FSM DRM-IMS{% endblock %}
+
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="fw-bold text-dark">National Emergency Contacts Directory</h1>
-        <p class="text-muted">Instantly search and access validated disaster management focal points, responder units, and command networks across all FSM States.</p>
-    </div>
-</div>
+
+<style>
+    /* ==========================
+       DRMIMS Contacts Directory
+       (colors and font come from base.html)
+       ========================== */
+    .ims-page-head {
+        position: relative;
+        padding: 2.75rem 2.25rem;
+        margin-bottom: 2rem;
+        border-radius: 18px;
+        color: #fff;
+        background: linear-gradient(110deg, var(--ims-navy-deep) 0%, var(--ims-navy) 60%, #0a5a93 100%);
+        overflow: hidden;
+    }
+    .ims-page-head::after {
+        content: '';
+        position: absolute;
+        right: -60px; top: -60px;
+        width: 260px; height: 260px;
+        border-radius: 50%;
+        border: 40px solid rgba(255,255,255,.05);
+        pointer-events: none;
+    }
+    .ims-page-head h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 .6rem; }
+    .ims-page-head p { margin: 0; max-width: 66ch; line-height: 1.7; color: rgba(255,255,255,.85); }
+
+    /* ---------- FILTER PANEL ---------- */
+    .ims-filter {
+        position: sticky; top: 90px;
+        padding: 1.6rem;
+        background: #fff;
+        border: 1px solid var(--ims-line);
+        border-radius: 18px;
+        box-shadow: 0 10px 28px rgba(0,43,91,.06);
+    }
+    .ims-filter h2 { display: flex; align-items: center; gap: .6rem; font-size: 1.05rem; font-weight: 800; margin: 0 0 1.25rem; }
+    .ims-filter h2 i { color: var(--ims-alert); }
+    .ims-filter label.ims-label { display: block; margin-bottom: .4rem; font-size: .8rem; font-weight: 700; color: var(--ims-muted); }
+    .ims-filter .ims-field { margin-bottom: 1.1rem; }
+
+    .ims-filter input:not([type="checkbox"]),
+    .ims-filter select {
+        width: 100%;
+        padding: .7rem .95rem;
+        border: 1.5px solid var(--ims-line);
+        border-radius: 12px;
+        background-color: var(--ims-surface);
+        font-size: .92rem;
+        color: var(--ims-ink);
+        transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+    }
+    .ims-filter input:not([type="checkbox"]):focus,
+    .ims-filter select:focus {
+        outline: none;
+        border-color: var(--ims-ocean);
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(0,119,182,.18);
+    }
+
+    .ims-hotline {
+        display: flex; align-items: center; gap: .65rem;
+        padding: .75rem .9rem;
+        margin-bottom: 1.25rem;
+        border-radius: 12px;
+        background: #fdeaea;
+        cursor: pointer;
+    }
+    .ims-hotline input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--ims-alert); cursor: pointer; }
+    .ims-hotline span { font-size: .86rem; font-weight: 700; color: #a11a1a; line-height: 1.35; }
+    .ims-hotline:focus-within { box-shadow: 0 0 0 3px rgba(214,40,40,.25); }
+
+    .ims-btn {
+        display: flex; align-items: center; justify-content: center; gap: .5rem;
+        width: 100%;
+        padding: .8rem 1rem;
+        border: 0;
+        border-radius: 999px;
+        background: var(--ims-alert);
+        color: #fff;
+        font-size: .92rem; font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background .2s ease;
+    }
+    .ims-btn:hover { background: #b51f1f; color: #fff; }
+    .ims-btn:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 3px; }
+    .ims-clear {
+        display: block; margin-top: .75rem; text-align: center;
+        font-size: .85rem; font-weight: 600; color: var(--ims-muted); text-decoration: none;
+    }
+    .ims-clear:hover { color: var(--ims-ocean); }
+
+    /* ---------- RESULTS ---------- */
+    .ims-results-head { display: flex; align-items: center; gap: .7rem; margin-bottom: 1.1rem; }
+    .ims-results-head h2 { font-size: 1.1rem; font-weight: 800; margin: 0; }
+    .ims-count { padding: .25rem .75rem; border-radius: 999px; background: #e5f0fc; color: #0b64c0; font-size: .8rem; font-weight: 700; }
+
+    .ims-contact {
+        position: relative;
+        padding: 1.5rem 1.6rem;
+        background: #fff;
+        border: 1px solid var(--ims-line);
+        border-left: 5px solid #9aa7b8;
+        border-radius: 18px;
+        transition: box-shadow .25s ease, transform .25s ease;
+    }
+    .ims-contact.is-hotline { border-left-color: var(--ims-alert); }
+    .ims-contact:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(0,43,91,.10); }
+
+    .ims-contact h3 { font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; margin: 0 0 .6rem; color: var(--ims-ink); }
+    .ims-tags { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: 1rem; }
+    .ims-tag { padding: .28rem .75rem; border-radius: 999px; font-size: .76rem; font-weight: 700; }
+    .ims-tag-state { background: #e5f0fc; color: #0b64c0; }
+    .ims-tag-sector { background: #eef1f5; color: #44556a; }
+    .ims-tag-hot { display: inline-flex; align-items: center; gap: .4rem; background: var(--ims-alert); color: #fff; }
+    .ims-tag-hot::before {
+        content: ''; width: 7px; height: 7px; border-radius: 50%; background: #fff;
+        animation: ims-blink 1.6s ease-in-out infinite;
+    }
+    @keyframes ims-blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+    .ims-focal { margin: 0 0 1.1rem; font-size: .92rem; color: var(--ims-muted); }
+    .ims-focal strong { color: var(--ims-ink); }
+
+    .ims-lines { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .75rem; padding-top: 1.1rem; border-top: 1px solid var(--ims-line); }
+    .ims-line {
+        display: flex; align-items: center; gap: .8rem;
+        padding: .7rem .9rem;
+        border-radius: 14px;
+        background: var(--ims-surface);
+        text-decoration: none;
+        color: var(--ims-ink);
+        min-width: 0;
+        transition: background .2s ease;
+    }
+    .ims-line:hover { background: var(--tint); }
+    .ims-line:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 2px; }
+    .ims-line-icon {
+        width: 38px; height: 38px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 11px; background: var(--tint); color: var(--tone);
+        font-size: 1rem;
+    }
+    .ims-line-text { min-width: 0; }
+    .ims-line-text small { display: block; font-size: .72rem; font-weight: 600; color: var(--ims-muted); }
+    .ims-line-text span { display: block; font-size: .94rem; font-weight: 700; color: var(--ims-ink); overflow-wrap: anywhere; }
+    .line-phone { --tone: #0b64c0; --tint: #e5f0fc; }
+    .line-sat   { --tone: #168a55; --tint: #e4f6ec; }
+    .line-mail  { --tone: #7e22ce; --tint: #f3e8ff; }
+    .ims-line.wide { grid-column: 1 / -1; }
+
+    .ims-notes {
+        margin-top: 1.1rem; padding: .85rem 1rem;
+        border-radius: 12px; background: #fff8ea; border-left: 3px solid #f5a524;
+        font-size: .86rem; line-height: 1.6; color: #5b4720;
+    }
+    .ims-notes strong { display: block; margin-bottom: .15rem; color: #4a3b1a; }
+
+    .ims-empty { text-align: center; padding: 3.5rem 1.5rem; border: 1.5px dashed var(--ims-line); border-radius: 18px; background: #fff; }
+    .ims-empty i { font-size: 2.2rem; color: var(--ims-muted); display: block; margin-bottom: .6rem; }
+    .ims-empty h5 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+
+    @media (max-width: 991px) { .ims-filter { position: static; } }
+    @media (max-width: 575px) {
+        .ims-page-head { padding: 1.75rem 1.25rem; }
+        .ims-contact { padding: 1.25rem 1.1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .ims-contact, .ims-btn, .ims-line { transition: none; }
+        .ims-tag-hot::before { animation: none; }
+    }
+</style>
+
+<header class="ims-page-head">
+    <h1>National Emergency Contacts Directory</h1>
+    <p>Instantly search and access validated disaster management focal points, responder units, and command networks across all FSM States.</p>
+</header>
 
 <div class="row g-4">
+
+    <!-- ===== FILTERS ===== -->
     <div class="col-lg-4">
-        <div class="card shadow-sm border-0 position-sticky" style="top: 20px;">
-            <div class="card-header bg-danger text-white fw-bold py-3">🚨 Directory Search Panel</div>
-            <div class="card-body">
-                <form method="get">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Free Text Indexing</label>
-                        {{ filterform.search }}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">State Command</label>
-                        <select name="state" class="form-select">
-                            {% for value, text in filterform.fields.state.choices %}
-                                <option value="{{ value }}" {% if value == request.GET.state %}selected{% endif %}>{{ text }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Operational Sector</label>
-                        <select name="sector" class="form-select">
-                            {% for value, text in filterform.fields.sector.choices %}
-                                <option value="{{ value }}" {% if value|stringformat:"s" == request.GET.sector %}selected{% endif %}>{{ text }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" name="is_24_7_operational" class="form-check-input" id="hotlineCheck" value="True" {% if request.GET.is_24_7_operational == 'True' %}checked{% endif %}>
-                        <label class="form-check-label small fw-bold text-danger" for="hotlineCheck">Show 24/7 Emergency Hotlines Only</label>
-                    </div>
-                    <button type="submit" class="btn btn-danger w-100 fw-bold py-2">Query Directory</button>
-                    <a href="{% url 'directories:directory_list' %}" class="btn btn-outline-secondary w-100 btn-sm mt-2">Clear Parameters</a>
-                </form>
-            </div>
+        <div class="ims-filter">
+            <h2><i class="bi bi-search"></i> Search directory</h2>
+
+            <form method="get">
+                <div class="ims-field">
+                    <label class="ims-label">Search</label>
+                    {{ filterform.search }}
+                </div>
+
+                <div class="ims-field">
+                    <label class="ims-label" for="stateSelect">State</label>
+                    <select name="state" id="stateSelect" class="form-select">
+                        {% for value, text in filterform.fields.state.choices %}
+                            <option value="{{ value }}" {% if value == request.GET.state %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="ims-field">
+                    <label class="ims-label" for="sectorSelect">Sector</label>
+                    <select name="sector" id="sectorSelect" class="form-select">
+                        {% for value, text in filterform.fields.sector.choices %}
+                            <option value="{{ value }}" {% if value|stringformat:"s" == request.GET.sector %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <label class="ims-hotline" for="hotlineCheck">
+                    <input type="checkbox" name="is_24_7_operational" id="hotlineCheck" value="True" {% if request.GET.is_24_7_operational == 'True' %}checked{% endif %}>
+                    <span>Show 24/7 emergency hotlines only</span>
+                </label>
+
+                <button type="submit" class="ims-btn"><i class="bi bi-search"></i> Search directory</button>
+                <a href="{% url 'directories:directory_list' %}" class="ims-clear">Clear filters</a>
+            </form>
         </div>
     </div>
 
+    <!-- ===== RESULTS ===== -->
     <div class="col-lg-8">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold text-secondary mb-0">Active Directory Matches ({{ contacts.count }})</h5>
+
+        <div class="ims-results-head">
+            <h2>Matching contacts</h2>
+            <span class="ims-count">{{ contacts.count }}</span>
         </div>
 
-        <div class="row g-3">
+        <div class="d-flex flex-column gap-3">
             {% for contact in contacts %}
-                <div class="col-md-12">
-                    <div class="card shadow-sm border-0 border-start border-4 {% if contact.is_24_7_operational %}border-danger{% else %}border-secondary{% endif %} h-100">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <h5 class="fw-bold text-dark mb-0">{{ contact.agency_name }}</h5>
-                                    <span class="badge bg-light text-dark border mt-1">{{ contact.get_state_display }}</span>
-                                    <span class="badge bg-secondary-subtle text-secondary border mt-1">{{ contact.sector.name }}</span>
-                                    
-                                    {% if contact.is_24_7_operational %}
-                                        <span class="badge bg-danger text-uppercase mt-1 animate-pulse">⚠️ 24/7 Hotline</span>
-                                    {% endif %}
-                                </div>
-                            </div>
+                <article class="ims-contact{% if contact.is_24_7_operational %} is-hotline{% endif %}">
 
-                            {% if contact.focal_person %}
-                                <div class="mb-3 text-muted">
-                                    <strong>Focal Point:</strong> {{ contact.focal_person }} 
-                                    {% if contact.job_title %}<span class="text-secondary">({{ contact.job_title }})</span>{% endif %}
-                                </div>
-                            {% endif %}
+                    <h3>{{ contact.agency_name }}</h3>
 
-                            <div class="row g-2 border-top pt-3 mt-2">
-                                <div class="col-sm-6">
-                                    <small class="text-muted d-block">Primary Connection Line</small>
-                                    <a href="tel:{{ contact.primary_phone }}" class="text-decoration-none fw-bold text-primary">📞 {{ contact.primary_phone }}</a>
-                                </div>
-                                {% if contact.secondary_phone %}
-                                    <div class="col-sm-6">
-                                        <small class="text-muted d-block">Alternate / Sat-Phone Grid</small>
-                                        <a href="tel:{{ contact.secondary_phone }}" class="text-decoration-none fw-bold text-success">📡 {{ contact.secondary_phone }}</a>
-                                    </div>
-                                {% endif %}
-                                {% if contact.email %}
-                                    <div class="col-12 mt-2">
-                                        <small class="text-muted d-block">Secure Communications Routing</small>
-                                        <a href="mailto:{{ contact.email }}" class="text-decoration-none fw-bold text-dark">✉️ {{ contact.email }}</a>
-                                    </div>
-                                {% endif %}
-                            </div>
+                    <div class="ims-tags">
+                        <span class="ims-tag ims-tag-state">{{ contact.get_state_display }}</span>
+                        <span class="ims-tag ims-tag-sector">{{ contact.sector.name }}</span>
+                        {% if contact.is_24_7_operational %}
+                            <span class="ims-tag ims-tag-hot">24/7 hotline</span>
+                        {% endif %}
+                    </div>
 
-                            {% if contact.notes %}
-                                <div class="mt-3 bg-light p-2 rounded border">
-                                    <small class="text-dark d-block fw-bold">Operational Routing Notes:</small>
-                                    <small class="text-secondary">{{ contact.notes }}</small>
-                                </div>
-                            {% endif %}
+                    {% if contact.focal_person %}
+                        <p class="ims-focal">
+                            <strong>Focal point:</strong> {{ contact.focal_person }}
+                            {% if contact.job_title %}({{ contact.job_title }}){% endif %}
+                        </p>
+                    {% endif %}
+
+                    <div class="ims-lines">
+                        <a href="tel:{{ contact.primary_phone }}" class="ims-line line-phone">
+                            <span class="ims-line-icon"><i class="bi bi-telephone-fill"></i></span>
+                            <span class="ims-line-text"><small>Primary line</small><span>{{ contact.primary_phone }}</span></span>
+                        </a>
+
+                        {% if contact.secondary_phone %}
+                            <a href="tel:{{ contact.secondary_phone }}" class="ims-line line-sat">
+                                <span class="ims-line-icon"><i class="bi bi-broadcast"></i></span>
+                                <span class="ims-line-text"><small>Alternate / sat-phone</small><span>{{ contact.secondary_phone }}</span></span>
+                            </a>
+                        {% endif %}
+
+                        {% if contact.email %}
+                            <a href="mailto:{{ contact.email }}" class="ims-line line-mail wide">
+                                <span class="ims-line-icon"><i class="bi bi-envelope-fill"></i></span>
+                                <span class="ims-line-text"><small>Email</small><span>{{ contact.email }}</span></span>
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    {% if contact.notes %}
+                        <div class="ims-notes">
+                            <strong>Routing notes</strong>
+                            {{ contact.notes }}
                         </div>
-                    </div>
-                </div>
+                    {% endif %}
+
+                </article>
             {% empty %}
-                <div class="col-12">
-                    <div class="card p-5 text-center text-muted border-0 shadow-sm">
-                        <h5>No regional operational nodes found matching your query configurations.</h5>
-                    </div>
+                <div class="ims-empty">
+                    <i class="bi bi-person-x"></i>
+                    <h5>No contacts match your search. Try clearing a filter.</h5>
                 </div>
             {% endfor %}
         </div>
+
     </div>
 </div>
+
 {% endblock %}

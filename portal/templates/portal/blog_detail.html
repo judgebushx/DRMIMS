@@ -1,45 +1,150 @@
 {% extends 'base.html' %}
 
+{% block title %}{{ post.title }} | FSM DRM-IMS{% endblock %}
+
 {% block content %}
+
+<style>
+    /* ==========================
+       DRMIMS Bulletin Detail
+       (colors and font come from base.html)
+       ========================== */
+    .ims-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 0 0 1.5rem; padding: 0; list-style: none; font-size: .85rem; font-weight: 600; }
+    .ims-crumbs a { color: var(--ims-muted); text-decoration: none; transition: color .2s ease; }
+    .ims-crumbs a:hover { color: var(--ims-ocean); }
+    .ims-crumbs a:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 2px; border-radius: 3px; }
+    .ims-crumbs li + li::before { content: '\F285'; font-family: 'bootstrap-icons'; font-size: .7rem; color: #a3afbf; margin-right: .5rem; vertical-align: middle; }
+    .ims-crumbs li[aria-current] { color: var(--ims-ink); }
+
+    .ims-art-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-bottom: 1.1rem; }
+    .ims-chip {
+        padding: .32rem .8rem;
+        border-radius: 999px;
+        font-size: .78rem; font-weight: 700;
+    }
+    .ims-chip-cat { background: var(--ims-alert); color: #fff; }
+    .ims-chip-state { background: #e5f0fc; color: #0b64c0; }
+    .ims-chip-state i { margin-right: .3rem; }
+    .ims-date { margin-left: auto; font-size: .84rem; font-weight: 600; color: var(--ims-muted); }
+    .ims-date i { color: var(--ims-ocean); margin-right: .35rem; }
+
+    .ims-art-title {
+        font-size: clamp(1.7rem, 4vw, 2.6rem);
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -.02em;
+        color: var(--ims-ink);
+        margin: 0 0 1.25rem;
+    }
+
+    .ims-art-summary {
+        margin: 0 0 1.75rem;
+        padding: 1.15rem 1.35rem;
+        border-left: 4px solid #f5a524;
+        border-radius: 0 14px 14px 0;
+        background: #fff8ea;
+        font-size: 1.08rem;
+        line-height: 1.7;
+        color: #4a3b1a;
+    }
+
+    .ims-art-hero {
+        margin-bottom: 1.75rem;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 14px 34px rgba(0,43,91,.14);
+        background: #dfe7f1;
+    }
+    .ims-art-hero img { display: block; width: 100%; max-height: 460px; object-fit: cover; }
+
+    .ims-art-body {
+        padding: 2.5rem 2.75rem;
+        background: #fff;
+        border: 1px solid var(--ims-line);
+        border-radius: 18px;
+        font-size: 1.05rem;
+        line-height: 1.85;
+        color: #26344d;
+    }
+    .ims-art-body p { max-width: 72ch; margin-bottom: 1.25rem; }
+    .ims-art-body p:last-child { margin-bottom: 0; }
+
+    .ims-art-actions {
+        display: flex; flex-wrap: wrap; justify-content: space-between; gap: .9rem;
+        margin: 2.5rem 0 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--ims-line);
+    }
+    .ims-btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+        padding: .8rem 1.4rem;
+        border-radius: 999px;
+        font-size: .92rem; font-weight: 700;
+        text-decoration: none;
+        transition: background .2s ease, color .2s ease, border-color .2s ease;
+    }
+    .ims-btn:focus-visible { outline: 3px solid var(--ims-ocean); outline-offset: 3px; }
+    .ims-btn-ghost { background: #fff; border: 1.5px solid var(--ims-line); color: var(--ims-navy); }
+    .ims-btn-ghost:hover { border-color: var(--ims-ocean); color: var(--ims-ocean); }
+    .ims-btn-alert { background: var(--ims-alert); color: #fff; }
+    .ims-btn-alert:hover { background: #b51f1f; color: #fff; }
+
+    @media (max-width: 575px) {
+        .ims-date { margin-left: 0; width: 100%; }
+        .ims-art-body { padding: 1.5rem 1.25rem; font-size: 1rem; }
+        .ims-art-summary { font-size: 1rem; padding: 1rem 1.1rem; }
+        .ims-btn { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .ims-crumbs a, .ims-btn { transition: none; }
+    }
+</style>
+
 <div class="row justify-content-center">
     <div class="col-xl-8 col-lg-10">
-        
-        <nav aria-label="breadcrumb" class="mb-4">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'portal:news_list' %}">Bulletins</a></li>
-                <li class="breadcrumb-item active aria-current='page'">Full Article</li>
+
+        <nav aria-label="breadcrumb">
+            <ol class="ims-crumbs">
+                <li><a href="{% url 'portal:home' %}">Home</a></li>
+                <li><a href="{% url 'portal:news_list' %}">Bulletins</a></li>
+                <li aria-current="page">Full article</li>
             </ol>
         </nav>
 
-        <header class="mb-4">
-            <div class="d-flex flex-wrap gap-2 mb-2 align-items-center">
-                <span class="badge bg-primary text-uppercase px-2.5 py-1.5">{{ post.get_category_display }}</span>
-                <span class="badge bg-secondary text-uppercase px-2.5 py-1.5">{{ post.get_state_tag_display }}</span>
-                <small class="text-muted ms-auto font-monospace fw-bold">Published: {{ post.published_date|date:"F d, Y @ h:i A" }}</small>
+        <header>
+            <div class="ims-art-meta">
+                <span class="ims-chip ims-chip-cat">{{ post.get_category_display }}</span>
+                <span class="ims-chip ims-chip-state"><i class="bi bi-geo-alt-fill"></i>{{ post.get_state_tag_display }}</span>
+                <span class="ims-date"><i class="bi bi-clock"></i>Published {{ post.published_date|date:"F d, Y @ h:i A" }}</span>
             </div>
-            <h1 class="fw-bold text-dark display-6 mt-2 mb-3">{{ post.title }}</h1>
-            <p class="lead text-secondary border-start border-4 border-warning ps-3 py-1 font-sans-serif italic bg-light rounded-end">{{ post.summary }}</p>
+
+            <h1 class="ims-art-title">{{ post.title }}</h1>
+
+            {% if post.summary %}
+                <p class="ims-art-summary">{{ post.summary }}</p>
+            {% endif %}
         </header>
+
         {% if post.featured_image %}
-            <div class="mb-4 overflow-hidden rounded shadow-sm border">
-                <img src="{{ post.featured_image.url }}" class="w-100 img-fluid object-fit-cover" style="max-height: 450px;" alt="Article reference snapshot">
+            <div class="ims-art-hero">
+                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
             </div>
         {% endif %}
 
-        <article class="text-dark bg-white p-4 p-md-5 rounded shadow-sm border lh-xl fs-5">
+        <article class="ims-art-body">
             {{ post.content|linebreaks }}
         </article>
 
-        <div class="mt-5 pt-3 border-top d-flex flex-wrap justify-content-between gap-3 mb-5">
-            <a href="{% url 'portal:news_list' %}" class="btn btn-outline-secondary fw-bold">← Back to News Bulletin Deck</a>
-            <a href="{% url 'directories:directory_list' %}" class="btn btn-warning fw-bold">🚨 Urgent Emergency Contacts Directory</a>
+        <div class="ims-art-actions">
+            <a href="{% url 'portal:news_list' %}" class="ims-btn ims-btn-ghost">
+                <i class="bi bi-arrow-left"></i> Back to all bulletins
+            </a>
+            <a href="{% url 'directories:directory_list' %}" class="ims-btn ims-btn-alert">
+                <i class="bi bi-telephone-fill"></i> Emergency contacts directory
+            </a>
         </div>
 
     </div>
 </div>
 
-<style>
-    .lh-xl { line-height: 1.85; }
-</style>
 {% endblock %}

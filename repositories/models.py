@@ -60,6 +60,7 @@ class DocumentRepository(models.Model):
         ('DM_PLAN', 'Disaster Management Plan'),
         ('RISK_PROFILE', 'Risk Profile'),
         ('AREA_PROFILE', 'Area Profile'),
+        ('ASSESSMENT TOOLS', 'Assessment Tools'),
     ]
     
     SUB_TYPE_CHOICES = [
@@ -76,6 +77,8 @@ class DocumentRepository(models.Model):
         ('VULN', 'Vulnerability Analysis'),
         ('HISTORY', 'Historical Disaster Record'),
         ('STUDY', 'Risk Study'),
+        # Assessment tools
+        ('INITIAL DAMAGE ASSESSMENT','Initial Damage Assessment'),
     ]
 
     STATE_CHOICES = [
@@ -87,8 +90,8 @@ class DocumentRepository(models.Model):
     ]
 
     title = models.CharField(max_length=255, help_text="e.g. Chuuk State Disaster Response Plan Amendment")
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
-    sub_type = models.CharField(max_length=15, choices=SUB_TYPE_CHOICES)
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
+    sub_type = models.CharField(max_length=30, choices=SUB_TYPE_CHOICES)
     state = models.CharField(max_length=20, choices=STATE_CHOICES)
     
     # Secure storage vector pointing to 'media/drm_documents/' 
